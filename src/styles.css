@@ -1,0 +1,224 @@
+/* 한글 도트 폰트 Galmuri11 (npm 패키지 galmuri, OFL 라이선스). 쓰는 두 굵기만 포함 */
+@font-face {
+  font-family: 'Galmuri11';
+  font-weight: 400;
+  font-display: block;
+  src: url('../node_modules/galmuri/dist/Galmuri11.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Galmuri11';
+  font-weight: 700;
+  font-display: block;
+  src: url('../node_modules/galmuri/dist/Galmuri11-Bold.woff2') format('woff2');
+}
+
+/* ============================================================
+   전역: 검은 배경, 마우스 커서 숨김, 1920×1080 고정 캔버스
+   ============================================================ */
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+* {
+  box-sizing: border-box;
+  cursor: none !important; /* 녹화에 마우스 커서가 찍히지 않게 */
+  user-select: none;
+}
+body {
+  font-family: 'Galmuri11', 'Galmuri9', 'Malgun Gothic', 'Apple SD Gothic Neo', monospace;
+  -webkit-font-smoothing: none; /* 도트 폰트가 번지지 않게 */
+}
+
+.viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+.canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center center;
+  overflow: hidden;
+  background: #000;
+}
+
+/* 층(layer): 화면 전체를 덮는 요소. 처음엔 숨김 — 타임라인이 autoAlpha로 켜고 끔 */
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* z-index: spot < 피아노방 < 들판 < 신랑 < 하트 < 마지막카드 < 배너 < 번쩍임 */
+.spot { z-index: 1; background: radial-gradient(circle 430px at 50% 50%, rgba(140, 160, 255, 0.42) 0%, rgba(140, 160, 255, 0.16) 45%, rgba(0, 0, 0, 0) 100%); inset: auto; }
+.bgPiano { z-index: 2; }
+.scene2 { z-index: 3; }
+.character.groom { z-index: 5; }
+.heartsLayer { z-index: 6; visibility: visible; opacity: 1; }
+.finalCard { z-index: 7; }
+.banner { z-index: 8; }
+.flash { z-index: 9; background: #fff; }
+
+/* ============================================================
+   캐릭터 / 말풍선
+   ============================================================ */
+.character {
+  position: absolute;
+  pointer-events: none;
+}
+.bob {
+  position: absolute;
+  inset: 0;
+}
+
+.bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 30px);
+  width: max-content;
+  z-index: 10;
+  color: #111;
+  line-height: 1.35;
+  text-align: center;
+  word-break: keep-all;
+  white-space: pre-wrap;
+}
+.bubbleBox {
+  background: #111;
+  padding: 6px;
+  clip-path: polygon(0 12px, 12px 12px, 12px 0, calc(100% - 12px) 0, calc(100% - 12px) 12px, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 12px calc(100% - 12px), 0 calc(100% - 12px));
+}
+.bubbleFill {
+  background: #fff;
+  padding: 20px 38px;
+  clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px));
+}
+.bubbleRest {
+  opacity: 0; /* 아직 안 나온 글자: 자리만 차지 */
+}
+.tailOuter,
+.tailInner {
+  position: absolute;
+  left: 50%;
+  margin-left: -21px;
+  width: 42px;
+  clip-path: polygon(0 0, 100% 0, 100% 34%, 84% 34%, 84% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 16% 67%, 16% 34%, 0 34%);
+}
+.tailOuter { bottom: -26px; height: 32px; background: #111; }
+.tailInner { bottom: -18px; height: 26px; width: 30px; margin-left: -15px; background: #fff; }
+
+/* ============================================================
+   STAGE 1 배경: 피아노 학원
+   ============================================================ */
+.wall { position: absolute; left: 0; top: 0; width: 100%; background: linear-gradient(#2a2d55, #20224a); }
+.wall::after { /* 벽 아래쪽 띠(걸레받이) */
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0; height: 24px;
+  background: #15162f;
+}
+.floor {
+  position: absolute; left: 0; width: 100%;
+  background: repeating-linear-gradient(90deg, #7a5233 0 120px, #5f3f26 120px 124px);
+}
+.frameArt {
+  position: absolute;
+  background: #d8c7a0;
+  border: 10px solid #6b4a2a;
+  box-shadow: inset 0 0 0 10px #8c9fd6;
+}
+.piano {
+  position: absolute;
+  width: 600px; height: 330px;
+  background: #15151f;
+  border: 8px solid #08080e;
+  box-shadow: inset 0 0 0 6px #2b2b40;
+}
+.pianoStand { position: absolute; left: 40px; top: 20px; width: 520px; height: 90px; background: #222235; border: 6px solid #0b0b14; }
+.pianoKeys {
+  position: absolute; left: 20px; top: 170px; width: 560px; height: 74px;
+  background: repeating-linear-gradient(90deg, #f6f6f6 0 38px, #555 38px 40px);
+  border: 4px solid #0b0b14;
+}
+.pianoKeys i { position: absolute; top: 0; width: 26px; height: 46px; background: #15151f; }
+.pianoStool { position: absolute; width: 120px; height: 70px; background: #4a3020; border: 6px solid #2a1a10; }
+.note {
+  position: absolute;
+  font-size: 56px;
+  color: #ffe58a;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* ============================================================
+   STAGE 2 배경: 하늘 / 구름 / 땅 / 장애물
+   ============================================================ */
+.sky { position: absolute; inset: 0; background: linear-gradient(#4db6ff, #b8e6ff 70%, #e8f7ff); }
+.clouds, .world { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
+.cloud, .bush { position: absolute; }
+.ground {
+  position: absolute; left: 0; width: 100%;
+  background: linear-gradient(#63d04f 0 20px, #2f8f3a 20px 32px, #8b5a33 32px);
+}
+.ground::after {
+  content: '';
+  position: absolute; left: 0; right: 0; top: 32px; bottom: 0;
+  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18) 4px, transparent 4px), linear-gradient(rgba(0, 0, 0, 0.18) 4px, transparent 4px);
+  background-size: 64px 64px;
+}
+.obstacle { position: absolute; }
+.obstacle.crate {
+  background-color: #c98a3a;
+  border: 8px solid #5b3414;
+  background-image: linear-gradient(45deg, transparent 46%, #5b3414 46% 54%, transparent 54%), linear-gradient(-45deg, transparent 46%, #5b3414 46% 54%, transparent 54%);
+}
+.obstacle.spike {
+  background: #6f788f; /* 하늘색 배경에서 잘 보이는 강철색 */
+  clip-path: polygon(0 100%, 12.5% 0, 25% 100%, 37.5% 0, 50% 100%, 62.5% 0, 75% 100%, 87.5% 0, 100% 100%);
+}
+
+/* ============================================================
+   하트 / 배너 / 마지막 카드
+   ============================================================ */
+.heart { position: absolute; left: 0; top: 0; visibility: hidden; opacity: 0; }
+
+.bannerMain, .fcLine {
+  text-align: center;
+  font-weight: bold;
+  -webkit-text-stroke: 12px #1a1a2e;
+  paint-order: stroke fill;
+  text-shadow: 0 8px 0 #1a1a2e;
+  letter-spacing: 4px;
+}
+.banner { top: 130px; bottom: auto; height: auto; }
+.bannerMain { font-size: 128px; color: #ffd84d; }
+.bannerSub { margin-top: 10px; text-align: center; font-size: 52px; color: #fff; -webkit-text-stroke: 8px #1a1a2e; paint-order: stroke fill; text-shadow: 0 6px 0 #1a1a2e; }
+
+.finalCard { top: 110px; bottom: auto; height: auto; }
+.fcLine { line-height: 1.25; }
+
+/* ============================================================
+   디버그 표시 (D 키). 녹화 땐 꺼두기!
+   ============================================================ */
+.debug {
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 1000;
+  display: none;
+  padding: 8px 12px;
+  font: 16px/1.5 monospace;
+  color: #0f0;
+  background: rgba(0, 0, 0, 0.75);
+  white-space: pre;
+  pointer-events: none;
+}

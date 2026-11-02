@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+
+# 녹화 원본 / 영상 파일은 용량이 크니 깃에 올리지 않음
+recordings/
+*.mp4
+*.mkv
+*.mov
+*.zip
+
+# 음원도 저작권/용량 때문에 깃에 올리지 않음 (필요하면 직접 예외 처리)
+public/assets/audio/*
+!public/assets/audio/.gitkeep
