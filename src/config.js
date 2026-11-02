@@ -40,9 +40,9 @@ export const config = {
     drop: { start: 27, end: 29 }, // 맵 등장 + 신랑 낙하/착지 + HUD
     piano: { start: 29, end: 41 }, // 그랜드 피아노 앞에서 멘트 2줄
     game: { start: 41, end: 81 }, // STAGE 1 START → 상자 8개 · 낭떠러지 · 벽돌 · 거북이 · 계단+깃발
-    meet: { start: 81, end: 94 }, // 신부 만남 + 하트 회복 + 인사 → 나란히 오른쪽으로(STAGE 2)
-    fade: { start: 94, end: 97 }, // 화면 전체가 검정으로
-    closing: { start: 97, end: 115.5 }, // 검은 화면에 감사 인사 → 완전한 검정
+    meet: { start: 81, end: 93 }, // 신부 만남 + 하트 회복 + 인사 → 나란히 오른쪽으로(STAGE 2)
+    fade: { start: 93, end: 95.6 }, // 화면 전체가 검정으로
+    closing: { start: 95.6, end: 117 }, // 검은 화면에 감사 인사 4줄 → 완전한 검정
   },
 
   // ── 오프닝 (검정 배경에서 걸어 들어오기 + 인사) ─────────────────
@@ -256,7 +256,7 @@ export const config = {
       // 깃발을 내린 뒤 신부에게 걸어가는 동안만 발소리처럼 살짝
       { id: 'walkMeet', track: 'walk', start: 81.2, stop: 83.6, fadeIn: 0.15, fadeOut: 0.3, volume: 0.32 },
       // 신부를 만나는 순간부터 끝까지
-      { id: 'outro', track: 'outro', start: 83.6, stop: 115.5, fadeIn: 1.0, fadeOut: 2.5 },
+      { id: 'outro', track: 'outro', start: 83.6, stop: 117.0, fadeIn: 1.0, fadeOut: 2.5 },
     ],
   },
 
@@ -285,7 +285,7 @@ export const config = {
     // 게임 시작 (1 YEAR 상자를 치기 직전에 사라짐)
     { id: 'stage1', text: 'STAGE 1 START', sub: '우리가 만난 이야기', at: 41.0, hold: 1.2 },
     // 둘이 손잡고 오른쪽으로 걸어가기 시작할 때
-    { id: 'stage2', text: 'STAGE 2 START', sub: '이제부터는 둘이서', at: 88.8, hold: 3.4 },
+    { id: 'stage2', text: 'STAGE 2 START', sub: '이제부터는 둘이서', at: 88.6, hold: 3.4 },
   ],
 
   // ── 신부 만남 (meet 장면) ────────────────────────────────────
@@ -303,15 +303,15 @@ export const config = {
     heartY: 280, // 하트가 시작하는 높이 (바닥선에서 위로 px)
     healAt: 84.6, // HUD 하트가 하나씩 다시 채워지기 시작
     healGap: 0.65,
-    waveAt: 86.4, // 둘 다 앞모습으로 돌아 손 흔들기
+    waveAt: 86.2, // 둘 다 앞모습으로 돌아 손 흔들기
     // 꾸벅 인사 (전용 도트 프레임 bow_1 / bow_2 사용)
-    bowAt: 87.0, // 고개를 숙이기 시작
+    bowAt: 86.8, // 고개를 숙이기 시작
     bowDown: 0.35, // 숙이는 데 걸리는 시간
     bowHold: 0.7, // 숙인 채로 머무는 시간
     bowUp: 0.35, // 고개를 드는 시간
     // 나란히 오른쪽으로 쫄쫄 걸어가기 (STAGE 2 배너와 같은 시각)
-    strollAt: 88.8,
-    strollEnd: 93.8,
+    strollAt: 88.6,
+    strollEnd: 92.8,
     strollDist: 430, // 둘이 오른쪽으로 이동하는 거리(px)
   },
 
@@ -324,11 +324,12 @@ export const config = {
     fadeOut: 1.0, // 사라지는 시간
     size: 64, // 마무리 글자 크기 (뒷자리에서도 읽도록 크게)
     color: '#ffffff',
-    //  at = 나타나는 시각 / out = 사라지기 시작하는 시각. 한 줄이 3.6초쯤 온전히 보입니다
+    //  at = 나타나는 시각 / out = 사라지기 시작하는 시각. 한 줄이 3초쯤 온전히 보입니다
     lines: [
-      { at: 98.0, out: 102.6, text: '귀한 걸음으로 함께해 주셔서 진심으로 감사드립니다.' },
-      { at: 103.7, out: 108.3, text: '이제 저희 두 사람, 새로운 길을 시작하려 합니다.' },
-      { at: 109.4, out: 114.0, text: '오늘 이 자리에서 저희의 약속을 함께 지켜봐 주세요.' },
+      { at: 96.2, out: 100.2, text: '귀한 걸음으로 함께해 주셔서 진심으로 감사드립니다.' },
+      { at: 101.3, out: 105.3, text: '이제 저희 두 사람, 새로운 길 앞에 섰습니다.' },
+      { at: 106.4, out: 110.4, text: '오늘 이 자리에서 저희의 약속을 함께 지켜봐 주세요.' },
+      { at: 111.5, out: 115.5, text: '그럼 지금부터 저희의 예식을 시작하겠습니다.' },
     ],
   },
 
