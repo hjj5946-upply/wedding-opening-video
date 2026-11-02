@@ -9,7 +9,8 @@ import { buildOpening } from '../scenes/opening.js';
 import { buildDrop } from '../scenes/drop.js';
 import { buildHud } from '../scenes/hud.js';
 import { buildRun } from '../scenes/run.js';
-import { buildEnding } from '../scenes/ending.js';
+import { buildMeet } from '../scenes/meet.js';
+import { buildClosing } from '../scenes/closing.js';
 import { buildOverlays } from '../scenes/overlays.js';
 
 export function buildTimeline({ refs, config, flags }) {
@@ -21,9 +22,10 @@ export function buildTimeline({ refs, config, flags }) {
 
   buildOpening(ctx);
   buildDrop(ctx);
-  buildHud(ctx);
+  const hud = buildHud(ctx);
   buildRun(ctx);
-  buildEnding(ctx);
+  buildMeet(ctx);
+  buildClosing(ctx);
   buildOverlays(ctx);
   dialogue.addAll(tl);
 
@@ -39,6 +41,7 @@ export function buildTimeline({ refs, config, flags }) {
       steps.update(who, p, t);
     }
     dialogue.update(t);
+    hud.update(t);
   };
   tl.eventCallback('onUpdate', update);
   return { tl, update, poses, steps };

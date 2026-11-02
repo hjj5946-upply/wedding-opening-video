@@ -1,5 +1,5 @@
 // 화면에 올라가는 모든 요소를 층(layer)으로 쌓아 둔 곳. 움직임은 전부 src/scenes/*.js 의 타임라인이 담당.
-//  z-index 순서(styles.css): 맵(scene2) < 신랑 < 하트 < HUD < 마지막카드 < 배너 < 번쩍임
+//  z-index 순서(styles.css): 맵(scene2) < 신랑 < 하트·HUD < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자
 //  오프닝(0~23초)은 아무 배경 없이 순수 검정(.canvas 배경색)
 import Character from './Character.jsx';
 import World from './World.jsx';
@@ -14,6 +14,7 @@ export default function Scene({ refs, config }) {
   const charW = groomSprite.w * spriteScale;
   const charH = groomSprite.h * spriteScale;
   const charStyle = { width: charW, height: charH, top: groundY - charH };
+  const C = config.closing;
 
   return (
     <>
@@ -26,17 +27,8 @@ export default function Scene({ refs, config }) {
 
       {/* 만남 하트 */}
       <div className="layer heartsLayer">
-        {Array.from({ length: config.ending.heartCount }, (_, i) => (
+        {Array.from({ length: config.meet.heartCount }, (_, i) => (
           <Heart key={i} palette={config.palette} scale={6} innerRef={(el) => (refs.hearts[i] = el)} />
-        ))}
-      </div>
-
-      {/* 마지막 고정 카드 */}
-      <div className="layer finalCard" ref={(el) => (refs.finalCard = el)}>
-        {config.finalCard.lines.map((l, i) => (
-          <div key={i} className="fcLine" style={{ fontSize: l.size, color: l.color }}>
-            {fillTokens(l.text, config)}
-          </div>
         ))}
       </div>
 
@@ -48,8 +40,30 @@ export default function Scene({ refs, config }) {
         </div>
       ))}
 
-      {/* 번쩍임(STAGE CLEAR) */}
+      {/* 번쩍임(STAGE 1 CLEAR) */}
       <div className="layer flash" ref={(el) => (refs.flash = el)} />
+
+      {/* 검정 페이드 — 맵·캐릭터·HUD·배너를 전부 덮음 */}
+      <div className="layer blackout" ref={(el) => (refs.blackout = el)} />
+
+      {/* 마무리 감사 인사 (한 줄씩 나타나 영상 끝까지 고정) */}
+      <div className="layer closing" style={{ top: C.top }}>
+        {C.lines.map((l, i) => (
+          <div
+            key={i}
+            className="clLine"
+            ref={(el) => (refs.closingLines[i] = el)}
+            style={{
+              fontSize: l.size ?? C.size,
+              color: l.color ?? C.color,
+              maxWidth: C.maxWidth,
+              marginTop: i === 0 ? 0 : (l.marginTop ?? 0) + C.lineGap,
+            }}
+          >
+            {fillTokens(l.text, config)}
+          </div>
+        ))}
+      </div>
     </>
   );
 }

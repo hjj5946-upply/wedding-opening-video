@@ -40,9 +40,9 @@ export const config = {
     drop: { start: 23, end: 25 }, // 맵 등장 + 신랑 낙하/착지 + HUD
     piano: { start: 25, end: 40 }, // 피아노 옆에서 멘트
     run: { start: 40, end: 80 }, // GAME START → 달리기, 장애물
-    meet: { start: 80, end: 90 }, // 신부 만남 + STAGE 1 CLEAR
-    fade: { start: 90, end: 96 }, // 검정으로 페이드
-    closing: { start: 96, end: 108 }, // 감사 인사 (끝까지 고정)
+    meet: { start: 80, end: 90 }, // 맵 정지 → 신부에게 걸어가 만남 → 하트 → 둘이 인사 → STAGE 1 CLEAR
+    fade: { start: 90, end: 94 }, // 화면 전체(HUD 포함)가 검정으로 덮임
+    closing: { start: 94, end: 108 }, // 검은 화면에 감사 인사 (끝까지 고정)
   },
 
   // ── 오프닝 (검정 배경에서 걸어 들어오기 + 인사) ─────────────────
@@ -74,6 +74,26 @@ export const config = {
     jump: { air: 1.0, height: 300 }, // 점프 체공 시간(초), 높이(px)
     // 피아노 = 첫 번째 장애물. apexAt = 신랑이 피아노 바로 위(점프 최고점)에 오는 시각 → 위치는 자동 계산
     piano: { apexAt: 41.0 },
+    // 글자 장애물 (순서대로 나옴. 맵 위 위치는 시각으로 자동 계산 — engine/timing.js)
+    //  hit: false → 점프로 넘음. apexAt = 장애물 바로 위(점프 최고점)에 오는 시각
+    //  hit: true  → 부딪힘.     hitAt  = 부딪히는 시각 (부딪히면 장애물이 넘어지며 사라짐)
+    //  w/h = 장애물 크기(px). 점프 장애물은 h가 점프 높이(jump.height)보다 낮아야 하고,
+    //        w는 체공시간 안에 넘을 수 있어야 함 (npm run check 가 검사)
+    obstacles: [
+      { id: 'w1', text: '수많은', hit: false, apexAt: 47.0, w: 240, h: 190 },
+      { id: 'w2', text: '우여곡절', hit: true, hitAt: 53.5, w: 300, h: 220 },
+      { id: 'w3', text: '많은', hit: false, apexAt: 60.5, w: 200, h: 170 },
+      { id: 'w4', text: '일들이', hit: true, hitAt: 67.0, w: 260, h: 200 },
+    ],
+    // 부딪혔을 때 연출 (초 / px)
+    hitFx: {
+      knockback: 80, // 뒤로 밀리는 거리(px)
+      back: 0.14, // 밀리는 시간
+      pause: 0.16, // 밀린 채로 멈춰 있는 시간
+      recover: 0.42, // 원래 자리로 돌아오는 시간
+      blink: 0.96, // 깜빡이는 시간 (무적 느낌)
+      topple: 0.55, // 장애물이 넘어지며 사라지는 시간
+    },
     // 장식 (점프와 무관). 파이프/블록 x는 맵 좌표, 블록 y는 블록 위쪽 끝
     pipes: [{ x: 60, h: 2 }],
     blockRows: [
@@ -87,7 +107,8 @@ export const config = {
   // ── HUD (착지와 함께 등장, 신부를 만날 때까지) ─────────────────────
   hud: {
     hearts: { count: 3, x: 56, y: 44, scale: 8, gap: 16 }, // 왼쪽 위 하트(라이프)
-    time: { from: 1, to: 8, unit: 'YEAR', label: 'TIME', right: 56, y: 44, labelSize: 30, valueSize: 46 }, // 오른쪽 위
+    //  TIME 은 달리기 진행도에 비례해 from → to 로 올라감. fullAt = to(8 YEAR)에 도달하는 시각
+    time: { from: 1, to: 8, unit: 'YEAR', label: 'TIME', fullAt: 68.0, right: 56, y: 44, labelSize: 30, valueSize: 46 }, // 오른쪽 위
   },
 
   // ── 말풍선 공통 설정 ────────────────────────────────────────
@@ -100,7 +121,7 @@ export const config = {
     fontSize: 64,
     layout: 'above', // 멘트에 layout이 없을 때 기본값
     side: { maxWidth: 1340, gap: 40, centerY: 0.32 }, // gap: 캐릭터와의 간격, centerY: 풍선 세로 중심(캐릭터 키 대비, 0=머리끝)
-    above: { maxWidth: 1100, gap: 34, tailX: 150 }, // tailX: 풍선 왼쪽 끝 ~ 꼬리 거리 (풍선은 캐릭터 기준 오른쪽으로 펼쳐짐)
+    above: { maxWidth: 1400, gap: 34, tailX: 150 }, // tailX: 풍선 왼쪽 끝 ~ 꼬리 거리 (풍선은 캐릭터 기준 오른쪽으로 펼쳐짐)
   },
 
   // ── 말소리 효과음 (동물의 숲 느낌의 "뿅뿅"). 웹에서 유일하게 소리를 내는 부분 ─
@@ -133,38 +154,59 @@ export const config = {
     { id: 4, scene: 'piano', layout: 'above', at: 25.2, hold: 2.0, text: '첫 직장에 취직하고, 퇴근 후 취미로 피아노 학원을 다녔는데요.' },
     { id: 5, scene: 'piano', layout: 'above', at: 30.3, hold: 1.8, text: '거기서 아주 아름다운 선생님을 만났습니다.' },
     { id: 6, scene: 'piano', layout: 'above', at: 34.3, hold: 2.8, text: '저는 피아노에만 집중하려 했지만... 선생님께 작업만 쳤습니다.' }, // 웃음 포인트
+    // 달리기 끝 — 장애물 4개를 다 지난 뒤 (달리는 중 머리 위 말풍선)
+    { id: 7, scene: 'run', layout: 'above', at: 70.5, hold: 3.0, text: '있었지만 8년 6개월을 만났고, 오늘 지금 이 자리, 드디어 STAGE 2탄으로 향해 가려 합니다!' },
   ],
 
   // ── 큰 글자 배너 ────────────────────────────────────────────
   banners: [
+    { id: 'start', text: 'GAME START', sub: 'STAGE 1 — 우리가 만난 이야기', at: 40.0, hold: 1.8 },
     { id: 'clear', text: 'STAGE 1 CLEAR!', sub: '연애 스테이지, 여기서 CLEAR!', at: 86.0, hold: 3.0 },
   ],
 
-  // ── (임시) 신부 만남 — E단계에서 새 구조로 바뀝니다 ─────────────────
-  ending: {
-    brideScreenX: 1400, // 맵이 멈췄을 때 신부가 서 있는 화면 x(중심)
-    brideWaveFrom: 80.5,
-    meetWalkEnd: 83.4,
-    gap: 170,
-    heartsAt: 83.6,
+  // ── 신부 만남 (meet 장면) ────────────────────────────────────
+  //  맵이 멈추고 신부가 보임 → 신랑이 걸어가 만남(서로 마주 보는 옆모습) → 하트 → 둘 다 앞모습 손 흔들기 → STAGE 1 CLEAR
+  meet: {
+    brideScreenX: 1220, // 맵이 멈췄을 때 신부가 서 있는 화면 x(중심)
+    gap: 200, // 만났을 때 두 사람 중심 사이 거리(px)
+    walkEnd: 83.2, // 신랑이 신부 앞에 도착하는 시각
+    waveAt: 85.0, // 둘 다 앞모습으로 돌아 손 흔들기
+    flashAt: 86.0, // 짧은 번쩍임 (= STAGE 1 CLEAR 배너와 같은 시각)
+    flashDur: 0.45,
+    // 두 사람 사이에서 떠오르는 하트. 배너와 겹치지 않게 배너(86.0초) 전에 끝나도록 맞춰 둠
+    heartsAt: 83.5, // 첫 하트가 뜨는 시각
     heartCount: 12,
+    heartStagger: 0.11, // 하트 사이 시간차(초)
+    heartRise: 1.5, // 하트 1개가 떠올랐다 사라지기까지(초)
+    heartY: 280, // 하트가 시작하는 높이 (바닥선에서 위로 px)
   },
 
-  // ── (임시) 마지막 고정 화면 — E단계에서 closing 으로 바뀝니다 ─────────
-  finalCard: {
-    at: 100,
+  // ── 마무리 감사 인사 (검정 페이드 → 흰 글씨, 영상 끝까지 고정) ──────
+  //  fade 장면에서 화면 전체(HUD 포함)가 검정으로 덮인 뒤, 아래 줄들이 하나씩 나타납니다.
+  //  at = 그 줄이 나타나는 시각. size/color 를 줄마다 따로 줄 수 있습니다.
+  closing: {
+    blackoutDur: 2.0, // 검정으로 덮이는 시간(초). fade 장면 시작부터
+    top: 290, // 첫 줄의 화면 위에서의 위치(px)
+    maxWidth: 1760, // 글자가 이 폭을 넘으면 줄바꿈
+    lineGap: 30, // 줄 사이 간격(px)
+    fadeIn: 0.9, // 한 줄이 떠오르는 시간(초)
+    size: 52,
+    color: '#ffffff',
     lines: [
-      { text: '두 번째 스테이지, 결혼', size: 56, color: '#ffffff' },
-      { text: '{groom} ♥ {bride}', size: 140, color: '#ffd84d' },
-      { text: '{date}', size: 68, color: '#ffffff' },
+      { at: 94.6, text: '오늘 이 자리에 함께해 주신 모든 분들께 진심으로 감사드립니다.' },
+      { at: 97.2, text: '서로 아끼고 존중하며 행복하게 살겠습니다.' },
+      { at: 99.8, text: '저희의 새로운 시작을 따뜻한 마음으로 축복해 주세요.' },
+      { at: 102.6, text: '신랑 {groom} · 신부 {bride}', size: 86, color: '#ffd84d', marginTop: 70 },
     ],
   },
 
-  // ── 음악 편집 메모 (화면에는 나오지 않음. 편집 때 참고용) — E단계에서 최종 갱신 ──
+  // ── 음악 편집 메모 (화면에는 나오지 않음. 편집 때 참고용) ──────────
   audioCues: [
     { t: 1.0, label: 'BGM① 잔잔한 곡 시작(낮은 볼륨)' },
     { t: 40.0, label: 'BGM② 마리오풍 시작 (GAME START)' },
-    { t: 80.0, label: 'BGM③ 하이라이트 (신부 만남)' },
+    { t: 80.0, label: 'BGM③ 하이라이트 시작 (맵 정지 · 신부 등장)' },
+    { t: 83.2, label: '두 사람이 만나는 순간 — 하이라이트 절정을 여기에 맞추기' },
+    { t: 90.0, label: '검정 페이드 시작 — 볼륨을 서서히 줄이기' },
     { t: 108.0, label: '끝 — 여기서 영상 자르기' },
   ],
 

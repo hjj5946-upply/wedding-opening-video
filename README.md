@@ -2,7 +2,7 @@
 
 개식 직후 상영할 오프닝 영상입니다. **웹페이지 자체가 영상**이고, 이 페이지를 OBS로 화면 녹화한 뒤 편집 툴에서 음악을 입혀 MP4로 내보냅니다.
 
-- 컨셉: 도트 게임풍 (STAGE 1 연애 이야기 → STAGE 2 달려가서 신부 만남)
+- 컨셉: 도트 게임풍 (인사 → 플랫포머 맵으로 낙하 → 달리며 장애물 → 신부 만남 → 감사 인사)
 - 규격: **1920×1080 / 60fps / MP4(H.264+AAC) / 2분 이내** (예식장 필수 규격)
 - 기술: Vite + React + GSAP
 
@@ -30,13 +30,14 @@ npm run dev
 | D | 디버그 표시(현재 시간/장면/다음 음악 큐) 켜기·끄기 — **녹화 땐 꺼두기** |
 | P | 일시정지/재개 |
 | ← → / [ ] | ±5초 / ±1초 이동 (디버그 켠 상태) |
-| 0~5 | 장면 시작으로 점프 (디버그 켠 상태) |
+| 0~8 | 장면 시작으로 점프 (디버그 켠 상태) — black/intro/greet/drop/piano/run/meet/fade/closing |
 
 주소 뒤에 붙이는 옵션:
 
 - `?t=62` : 62초 지점에서 멈춘 채로 열기 (특정 장면 화면만 확인할 때)
 - `?debug=1` : 디버그 표시를 켠 채로 열기
 - `?autostart=1` : 스페이스 없이 바로 재생 (테스트용)
+- `?sprites` : 도트 프레임 확인 화면 (모든 포즈 / 좌우 반전 / 검정·하늘 배경). `?sprites&t=0.4` 로 멈춤, `&scale=7` 로 확대
 
 ## 수정하는 곳 (거의 전부 `src/config.js` 한 곳)
 
@@ -45,10 +46,16 @@ npm run dev
 | 신랑/신부 이름, 날짜 | `couple` |
 | 멘트 문구/타이밍 | `dialogue` |
 | 장면 시간 구간 | `scenes` |
-| 점프 타이밍(음악 비트에 맞추기) | `stage2.obstacles[].apexAt` |
+| 큰 글자 배너 (GAME START / STAGE 1 CLEAR) | `banners` |
+| 글자 장애물 문구·시각 (음악 비트에 맞추기) | `map.obstacles[].apexAt` / `.hitAt` |
+| 부딪힐 때 연출(밀림·깜빡임) | `map.hitFx` |
+| 하트 개수, TIME 1→8 YEAR | `hud` |
+| 신부 만남(위치·시각·하트) | `meet` |
+| 마무리 감사 인사 문구 | `closing.lines` |
 | 글자 속도, 말풍선 크기 | `bubble` |
-| 말소리 효과음 | `sfx` |
+| 말소리 효과음 / 발걸음 소리 | `sfx` |
 | 색상 | `palette` |
+| 음악 편집 메모(BGM 큐) | `audioCues` |
 
 수정 후 **`npm run check`** 를 돌리면 시간 초과/겹침/규정 위반(2분) 같은 실수를 잡아줍니다.
 
@@ -58,10 +65,10 @@ npm run dev
 src/
   config.js          ← 문구/타이밍/색 (여기만 주로 수정)
   App.jsx            ← 키보드 조작, 타임라인 연결
-  components/        ← 화면 부품 (Stage, Scene, 캐릭터, 말풍선, 피아노방, 들판 ...)
-  scenes/            ← 장면별 GSAP 연출 (opening / stage1 / clear / stage2 / ending / overlays)
-  engine/            ← 타임라인 조립, 대사 타이핑, 포즈, 효과음, 시간 계산
-  sprites/           ← 임시 도트 신랑/신부/하트 (코드로 정의)
+  components/        ← 화면 부품 (Stage, Scene, 캐릭터, 말풍선, 맵(World), HUD, 도트 ...)
+  scenes/            ← 장면별 GSAP 연출 (opening / drop / hud / run / meet / closing / overlays)
+  engine/            ← 타임라인 조립, 대사 타이핑, 포즈, 발걸음, 효과음, 시간 계산
+  sprites/           ← 임시 도트 신랑/신부/소품/하트 (코드로 정의, PNG로 교체 가능)
 scripts/check-config.mjs   ← 설정 검사
 public/assets/             ← 나중에 넣을 도트 PNG, 사진, 음원(깃에는 안 올림)
 docs/                      ← 지침, 예식장 규격, 시나리오, 결정 로그, 녹화 가이드, Claude Code 프롬프트
@@ -87,8 +94,11 @@ git push -u origin main
 - **Claude(채팅)**: 기획/아이디어 정리, 지침 문서 관리, Claude Code에게 줄 프롬프트 작성
 - **Claude Code**: 실제 구현
 
-첫 작업 프롬프트는 `docs/prompts/P01_초기확인.md` 입니다.
+작업 프롬프트는 `docs/prompts/` 에 있습니다. **현재 진행 상황은 `docs/PROGRESS.md`** 를 보세요.
 
 ## 폰트
 
-한글 도트 폰트 [Galmuri](https://github.com/quiple/galmuri) (SIL OFL 1.1) 를 `npm install` 로 받아 사용합니다.
+- 한글 도트 폰트 [Galmuri](https://github.com/quiple/galmuri) (SIL OFL 1.1)
+- 영문 HUD 폰트 [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (SIL OFL 1.1, `@fontsource/press-start-2p`)
+
+둘 다 `npm install` 로 받아 빌드에 포함되므로 **오프라인에서도 글씨가 정상으로 보입니다.**

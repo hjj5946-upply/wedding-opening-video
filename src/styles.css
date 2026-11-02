@@ -66,14 +66,15 @@ body {
   opacity: 0;
 }
 
-/* z-index: 맵(scene2) < 신랑 < 하트 < 마지막카드 < 배너 < 번쩍임 */
+/* z-index: 맵(scene2) < 신랑 < 하트·HUD < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자 */
 .scene2 { z-index: 3; }
 .character.groom { z-index: 5; }
 .heartsLayer { z-index: 6; visibility: visible; opacity: 1; }
 .hud { z-index: 6; }
-.finalCard { z-index: 7; }
 .banner { z-index: 8; }
 .flash { z-index: 9; background: #fff; }
+.blackout { z-index: 10; background: #000; }
+.closing { z-index: 11; visibility: visible; opacity: 1; }
 
 /* ============================================================
    캐릭터 / 말풍선
@@ -185,6 +186,28 @@ body {
   text-shadow: 4px 4px 0 #8a4b0f;
 }
 
+/* 글자 장애물 ("수많은" / "우여곡절" ...). 부딪히는 것은 오른쪽 아래를 축으로 앞으로 넘어짐 */
+.wordObstacle {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 6px solid #2a1a0c;
+  background-color: #c4622d;
+  box-shadow: inset -10px -10px 0 #8a3f17, inset 10px 10px 0 #e8975e;
+  transform-origin: 100% 100%;
+  will-change: transform;
+}
+.wordObstacle span {
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 2px;
+  white-space: nowrap;
+  color: #fff;
+  -webkit-text-stroke: 8px #2a1a0c;
+  paint-order: stroke fill;
+}
+
 /* ============================================================
    HUD (하트 + TIME)
    ============================================================ */
@@ -199,13 +222,14 @@ body {
   -webkit-font-smoothing: none;
 }
 .hudLabel { color: #ffd84d; margin-bottom: 14px; }
+.hudValue { transform-origin: 100% 50%; } /* 숫자가 올라갈 때 살짝 커짐 — 오른쪽 끝 기준 */
 
 /* ============================================================
-   하트 / 배너 / 마지막 카드
+   하트 / 배너 / 마무리 감사 인사
    ============================================================ */
 .heart { position: absolute; left: 0; top: 0; visibility: hidden; opacity: 0; }
 
-.bannerMain, .fcLine {
+.bannerMain {
   text-align: center;
   font-weight: bold;
   -webkit-text-stroke: 12px #1a1a2e;
@@ -217,8 +241,23 @@ body {
 .bannerMain { font-size: 128px; color: #ffd84d; }
 .bannerSub { margin-top: 10px; text-align: center; font-size: 52px; color: #fff; -webkit-text-stroke: 8px #1a1a2e; paint-order: stroke fill; text-shadow: 0 6px 0 #1a1a2e; }
 
-.finalCard { top: 110px; bottom: auto; height: auto; }
-.fcLine { line-height: 1.25; }
+/* 마무리 감사 인사: 검은 화면 위 흰 글씨. 한 줄씩 나타나 영상 끝까지 고정 */
+.closing {
+  bottom: auto;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.clLine {
+  visibility: hidden;
+  opacity: 0;
+  text-align: center;
+  line-height: 1.5;
+  word-break: keep-all;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 0 #000;
+}
 
 /* ============================================================
    디버그 표시 (D 키). 녹화 땐 꺼두기!

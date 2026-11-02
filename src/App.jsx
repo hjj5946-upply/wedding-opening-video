@@ -20,7 +20,7 @@ import { unlockAudio } from './engine/audio.js';
 const JUMP_ORDER = Object.keys(config.scenes); // 숫자키 0~8 = 장면 순서대로
 
 export default function App() {
-  const refs = useRef({ banners: {}, hearts: [], hudHearts: [] }).current;
+  const refs = useRef({ banners: {}, hearts: [], hudHearts: [], obstacles: {}, closingLines: [] }).current;
   const flags = useRef({ silent: false }).current;
   const api = useRef({ tl: null, update: null, started: false, pausedByUser: false, debug: false }).current;
 

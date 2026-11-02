@@ -5,7 +5,7 @@ import Character from './Character.jsx';
 import PixelArt from './PixelArt.jsx';
 import { brideSprite } from '../sprites/bride.js';
 import { piano, hill, cloud, bush } from '../sprites/props.js';
-import { PIANO_SIZE, leftForApex, runDistance } from '../engine/timing.js';
+import { PIANO_SIZE, leftForApex, runDistance, obstacleInfo } from '../engine/timing.js';
 
 // 매번 같은 배치가 나오도록 고정 시드 난수
 function mulberry32(a) {
@@ -46,9 +46,14 @@ export default function World({ refs, config, charStyle, charW }) {
   const worldW = dist + W + 800;
   const rand = mulberry32(M.decorSeed);
 
-  // 장애물(피아노 등) 근처에는 덤불을 두지 않음 (장애물처럼 보이지 않게)
+  // 장애물(피아노 · 글자 장애물) 근처에는 덤불을 두지 않음 (장애물처럼 보이지 않게)
   const pianoX = leftForApex(config, M.piano.apexAt, PIANO_SIZE.w);
-  const busy = [[pianoX - 200, pianoX + PIANO_SIZE.w + 200], ...M.pipes.map((p) => [p.x - 100, p.x + 250])];
+  const words = (M.obstacles ?? []).map((o) => obstacleInfo(config, o)); // 위치/글자크기 자동 계산
+  const busy = [
+    [pianoX - 200, pianoX + PIANO_SIZE.w + 200],
+    ...words.map((o) => [o.left - 220, o.left + o.w + 220]),
+    ...M.pipes.map((p) => [p.x - 100, p.x + 250]),
+  ];
   const free = (x, w) => !busy.some(([a, b]) => x + w > a && x < b);
 
   const clouds = [];
@@ -58,7 +63,7 @@ export default function World({ refs, config, charStyle, charW }) {
   const bushes = [];
   for (let x = 250; x < worldW; x += 500 + rand() * 600) if (free(x, 180)) bushes.push({ x, s: rand() < 0.5 ? 1 : 1.4 });
 
-  const brideCenterX = dist + config.ending.brideScreenX;
+  const brideCenterX = dist + config.meet.brideScreenX; // 맵이 멈추면 화면 x = meet.brideScreenX
 
   return (
     <div className="layer scene2" ref={(el) => (refs.map = el)}>
@@ -85,6 +90,17 @@ export default function World({ refs, config, charStyle, charW }) {
           <Pipe key={i} {...p} groundY={groundY} />
         ))}
         <PixelArt art={piano} className="prop obstacle" style={{ left: pianoX, top: groundY - PIANO_SIZE.h }} />
+        {/* 글자 장애물 — 부딪히는 것(hit)은 넘어지며 사라짐(scenes/run.js). 넘어지는 축은 오른쪽 아래 */}
+        {words.map((o) => (
+          <div
+            key={o.id}
+            className={`wordObstacle ${o.hit ? 'hitType' : 'jumpType'}`}
+            ref={(el) => (refs.obstacles[o.id] = el)}
+            style={{ left: o.left, top: groundY - o.h, width: o.w, height: o.h, fontSize: o.fontSize }}
+          >
+            <span>{o.text}</span>
+          </div>
+        ))}
         <Character
           who="bride"
           sprite={brideSprite}

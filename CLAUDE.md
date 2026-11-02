@@ -25,6 +25,21 @@
 - 나중에 늦게 시작하는 `fromTo`에는 `immediateRender: false` 필수 (안 쓰면 0초에 값이 적용됨)
 - 도트는 `image-rendering: pixelated`. 임시 도트(코드 정의)는 나중에 PNG로 교체 가능하게 `sprites/` 와 `PixelSprite` 로 분리 유지
 
+## 스프라이트 방향 / 포즈 규칙
+- 도트 격자는 **24×32칸**, 화면 배율은 `config.sprites.scale`
+- **옆모습은 오른쪽을 보는 그림만** 그립니다. 왼쪽은 `facing: 'left'` 로 좌우 반전 — 반전은 `PixelSprite` 의 캔버스에만 적용되므로 **말풍선은 뒤집히지 않습니다**. 앞모습 프레임은 반전하지 않습니다
+- 포즈는 `poses.add(who, start, end, pose, 'left'|'right'|{facing, fps})` 로 "구간"만 등록하고, 화면은 `poses.at(who, t)` 가 현재 시각으로 결정합니다. **겹치는 구간은 나중에 등록한 것이 우선** (달리기 전체를 깔고 점프/피격 구간을 덮어쓰는 식)
+- 포즈 이름(= PNG 파일 이름) 목록은 `engine/poses.js` 의 `POSES`. 전부 눈으로 보려면 주소에 **`?sprites`**
+- PNG 교체: `public/assets/sprites/<groom|bride>/<프레임이름>.png` (24×32, 옆모습은 오른쪽 방향). 파일이 있으면 그 프레임만 PNG를 쓰고, 없으면 코드 도트를 씁니다
+- 깜빡임 같은 "도트만" 적용할 효과는 `.bob`(캐릭터 안쪽)에 걸어야 말풍선이 같이 영향을 받지 않습니다
+
+## 달리기 구간 장애물 규칙
+- 장애물 위치는 **직접 적지 않습니다.** 시각만 적으면 맵 좌표가 자동 계산됩니다 (`engine/timing.js`)
+  - 점프로 넘는 것: `apexAt`(장애물 바로 위에 오는 시각) → `leftForApex`
+  - 부딪히는 것: `hitAt`(부딪히는 시각) → `leftForHit`
+- 화면(`World.jsx`)·타임라인(`scenes/run.js`)·검사(`scripts/check-config.mjs`)가 **모두 같은 함수**를 써야 합니다. 한쪽에만 계산식을 복사하지 마세요
+- HUD 하트는 **절대 0이 되면 안 됩니다** (`npm run check` 가 오류로 잡음)
+
 ## 작업 후 반드시
 1. `npm run check` (설정 검사) → 오류 0개
 2. `npm run build` 성공
@@ -38,5 +53,6 @@
 - 사용자가 요청하지 않은 의존성 추가
 
 ## 문서
+- **`docs/PROGRESS.md` 진행 상황 (가장 먼저 읽기)**
 - `docs/00_PROJECT_GUIDE.md` 최신 프로젝트 지침 · `01_VENUE_SPEC.md` 예식장 규격/일정 · `02_SCENARIO.md` 장면표/멘트/BGM 큐
 - `docs/03_DECISIONS.md` 결정 로그 · `04_RECORDING_GUIDE.md` 녹화/편집/제출 가이드 · `prompts/` 작업 프롬프트
