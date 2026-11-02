@@ -2,7 +2,8 @@
 
 개식 직후 상영할 오프닝 영상입니다. **웹페이지 자체가 영상**이고, 이 페이지를 OBS로 화면 녹화한 뒤 편집 툴에서 음악을 입혀 MP4로 내보냅니다.
 
-- 컨셉: 도트 게임풍 (인사 → 플랫포머 맵으로 낙하 → 달리며 장애물 → 신부 만남 → 감사 인사)
+- 컨셉: 도트 게임풍 (인사 → 플랫포머 맵으로 낙하 → 물음표상자 8개로 8년 연애사 → 깃발 → 신부 만남 → 감사 인사)
+- 길이: **약 101초**. 음악과 효과음은 **웹페이지가 직접 재생**합니다 (OBS 데스크톱 오디오로 함께 녹음)
 - 규격: **1920×1080 / 60fps / MP4(H.264+AAC) / 2분 이내** (예식장 필수 규격)
 - 기술: Vite + React + GSAP
 
@@ -38,6 +39,7 @@ npm run dev
 - `?debug=1` : 디버그 표시를 켠 채로 열기
 - `?autostart=1` : 스페이스 없이 바로 재생 (테스트용)
 - `?sprites` : 도트 프레임 확인 화면 (모든 포즈 / 좌우 반전 / 검정·하늘 배경). `?sprites&t=0.4` 로 멈춤, `&scale=7` 로 확대
+- `?music=0` : 배경 음악만 끄기   ·   `?sfx=0` : 효과음/비프음만 끄기   ·   `?mute=1` : 전부 끄기
 
 ## 수정하는 곳 (거의 전부 `src/config.js` 한 곳)
 
@@ -47,7 +49,7 @@ npm run dev
 | 멘트 문구/타이밍 | `dialogue` |
 | 장면 시간 구간 | `scenes` |
 | 큰 글자 배너 (GAME START / STAGE 1 CLEAR) | `banners` |
-| 글자 장애물 문구·시각 (음악 비트에 맞추기) | `map.obstacles[].apexAt` / `.hitAt` |
+| 글자 장애물 문구·시각 | `map.obstacles[].apexAt` / `.hitAt` |
 | 부딪힐 때 연출(밀림·깜빡임) | `map.hitFx` |
 | 하트 개수, TIME 1→8 YEAR | `hud` |
 | 신부 만남(위치·시각·하트) | `meet` |
@@ -55,7 +57,11 @@ npm run dev
 | 글자 속도, 말풍선 크기 | `bubble` |
 | 말소리 효과음 / 발걸음 소리 | `sfx` |
 | 색상 | `palette` |
-| 음악 편집 메모(BGM 큐) | `audioCues` |
+| 음악 파일/볼륨/구간 | `audio.tracks`, `audio.cues` |
+| 물음표상자(1~8년) 시각 | `map.boxes[].apexAt` |
+| 낭떠러지 / 계단 / 깃발 | `map.pits`, `map.stairs`, `map.flag` |
+| 연도별 사진 목록·위치 | `photos` |
+| 그랜드 피아노 위치/크기 | `piano` |
 
 수정 후 **`npm run check`** 를 돌리면 시간 초과/겹침/규정 위반(2분) 같은 실수를 잡아줍니다.
 
@@ -70,7 +76,11 @@ src/
   engine/            ← 타임라인 조립, 대사 타이핑, 포즈, 발걸음, 효과음, 시간 계산
   sprites/           ← 임시 도트 신랑/신부/소품/하트 (코드로 정의, PNG로 교체 가능)
 scripts/check-config.mjs   ← 설정 검사
-public/assets/             ← 나중에 넣을 도트 PNG, 사진, 음원(깃에는 안 올림)
+public/assets/
+  audio/             ← intro.mp3 / super_mario.mp3 / walk.mp3  (깃에 안 올라감 — 다른 PC에선 따로 복사)
+  photos/            ← year1.jpg ~ year8.jpg  (없으면 "N YEAR" 임시 액자)
+  images/            ← grandPiano.png
+  sprites/           ← 도트 PNG를 넣으면 코드 도트 대신 사용
 docs/                      ← 지침, 예식장 규격, 시나리오, 결정 로그, 녹화 가이드, Claude Code 프롬프트
 CLAUDE.md                  ← Claude Code가 가장 먼저 읽는 작업 규칙
 ```
@@ -95,6 +105,17 @@ git push -u origin main
 - **Claude Code**: 실제 구현
 
 작업 프롬프트는 `docs/prompts/` 에 있습니다. **현재 진행 상황은 `docs/PROGRESS.md`** 를 보세요.
+
+## 넣어야 할 재료
+
+| 파일 | 위치 | 없으면 |
+|---|---|---|
+| `intro.mp3`, `super_mario.mp3`, `walk.mp3` | `public/assets/audio/` | 소리 없이 재생되고 "PRESS SPACE" 안내가 늦게 뜸 |
+| `year1.jpg` ~ `year8.jpg` | `public/assets/photos/` | "1 YEAR" 같은 **임시 액자**가 대신 나옴 (영상은 정상) |
+| `grandPiano.png` | `public/assets/images/` | 피아노가 안 보임 |
+
+사진 권장 규격: **jpg, 긴 변 1200px 이하**. 액자(460×288)에 가운데를 맞춰 잘라 넣습니다. 가로 사진이 가장 잘 맞아요.
+음원은 용량·저작권 때문에 깃에 올리지 않습니다 — **다른 PC에서 작업하려면 USB 등으로 따로 복사**하세요.
 
 ## 폰트
 
