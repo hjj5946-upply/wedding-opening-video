@@ -21,5 +21,5 @@ export function buildDrop({ tl, refs, config, poses }) {
 
   poses.add('groom', D.leaveAt, D.landAt, 'fall');
   // 4) 착지 후 달리기 시작 전까지 앞모습 서기 (말할 때 통통은 dialogue.js)
-  poses.add('groom', D.landAt, config.scenes.run.start, 'frontStand');
+  poses.add('groom', D.landAt, config.scenes.game.start, 'frontStand');
 }

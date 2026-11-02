@@ -1,6 +1,7 @@
-// 말풍선. setParts(보이는글자, 아직안나온글자) 로 글자를 채우고, setLayout('side'|'above') 로 배치를 바꿉니다.
+// 말풍선. setParts(보이는글자, 아직안나온글자) 로 글자를 채우고, setLayout('side'|'above'|'game') 으로 배치를 바꿉니다.
 //  - side : 캐릭터 오른쪽에 크게, 꼬리는 왼쪽(캐릭터 쪽)
 //  - above: 머리 위, 꼬리는 아래
+//  - game : 게임 구간 전용 자막칸 (캐릭터와 떨어진 화면 아래쪽 고정 위치, 꼬리 없음)
 // 아직 안 나온 글자도 투명하게 자리를 차지해서, 글자가 늘어나도 풍선 크기가 흔들리지 않아요.
 // 구조: .bubbleAnchor(위치 담당, CSS) > .bubble(톡 튀어나오기/사라지기, GSAP)
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
@@ -39,7 +40,9 @@ const Bubble = forwardRef(function Bubble({ bubble }, ref) {
     if (layoutRef.current === layout || !anchorRef.current) return;
     layoutRef.current = layout;
     anchorRef.current.className = `bubbleAnchor ${layout}`;
-    elRef.current.style.maxWidth = `${bubble[layout]?.maxWidth ?? 1100}px`;
+    const b = bubble[layout] ?? {};
+    elRef.current.style.maxWidth = `${b.maxWidth ?? 1100}px`;
+    elRef.current.style.fontSize = `${b.fontSize ?? bubble.fontSize}px`;
   };
 
   useImperativeHandle(ref, () => ({

@@ -1,34 +1,52 @@
-// 앱 본체: 화면(Scene) + 타임라인 연결 + 키보드 조작
+// 앱 본체: 화면(Scene) + 타임라인 연결 + 키보드 조작 + 음악
 //
-//  Space : 영상 시작 (소리 허용도 이때 풀림)        R : 처음 상태로 (페이지 새로고침)
-//  D     : 디버그 표시 켜기/끄기                   P : 일시정지/재개
+//  Space : 영상 시작 (이때 소리 허용이 풀립니다)        R : 처음 상태로 (페이지 새로고침)
+//  D     : 디버그 표시 켜기/끄기                       P : 일시정지/재개
 //  ← →   : ±5초   [ ] : ±1초   0~8 : 장면 시작으로 점프  (디버그 켜진 상태에서만)
 //
 //  주소 옵션:  ?debug=1   처음부터 디버그 표시
 //              ?t=62      62초 지점에서 멈춘 채로 열기 (화면 확인/캡처용)
-//              ?autostart=1  스페이스 없이 바로 재생 (개발 테스트용, 소리는 안 남)
-import { useEffect, useLayoutEffect, useRef } from 'react';
+//              ?autostart=1  스페이스 없이 바로 재생 (개발 테스트용)
+//              ?music=0   배경 음악 끄기   ?sfx=0  효과음/비프음 끄기   ?mute=1  전부 끄기
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import config from './config.js';
 import Stage from './components/Stage.jsx';
 import Scene from './components/Scene.jsx';
 import Debug from './components/Debug.jsx';
 import { buildTimeline } from './engine/buildTimeline.js';
-import { totalDuration } from './engine/timing.js';
-import { unlockAudio } from './engine/audio.js';
+import { totalDuration, audioCues } from './engine/timing.js';
+import { unlockAudio, setMute, setMasterVolume, createMusic } from './engine/audio.js';
 
 const JUMP_ORDER = Object.keys(config.scenes); // 숫자키 0~8 = 장면 순서대로
 
 export default function App() {
-  const refs = useRef({ banners: {}, hearts: [], hudHearts: [], obstacles: {}, closingLines: [] }).current;
+  const refs = useRef({
+    banners: {},
+    hearts: [],
+    hudHearts: [],
+    obstacles: {},
+    closingLines: [],
+    boxes: {},
+    boxFaces: {},
+    boxUsed: {},
+    boxHearts: [],
+    photos: [],
+  }).current;
   const flags = useRef({ silent: false }).current;
-  const api = useRef({ tl: null, update: null, started: false, pausedByUser: false, debug: false }).current;
+  const api = useRef({ tl: null, update: null, started: false, pausedByUser: false, debug: false, music: null }).current;
+  const [ready, setReady] = useState(false);
+  const [started, setStarted] = useState(false);
 
   // 타임라인 만들기 (첫 화면이 그려지기 전에)
   useLayoutEffect(() => {
     gsap.ticker.lagSmoothing(0); // 버벅여도 시간이 늘어지지 않게: 영상 길이를 실제 시간에 정확히 맞춤
     const params = new URLSearchParams(window.location.search);
     api.debug = params.has('debug');
+
+    // 소리 on/off (?music=0 / ?sfx=0 / ?mute=1)
+    const all = params.get('mute') === '1';
+    setMute({ music: all || params.get('music') === '0', sfx: all || params.get('sfx') === '0' });
 
     const gctx = gsap.context(() => {
       const built = buildTimeline({ refs, config, flags });
@@ -37,6 +55,19 @@ export default function App() {
       api.steps = built.steps;
     });
     api.update();
+
+    // 음악: mp3를 미리 디코딩해 두고(준비되면 SPACE 안내 표시), 매 프레임 현재 시각에 맞춰 재생
+    const music = createMusic(config, audioCues(config));
+    api.music = music;
+    unlockAudio();
+    setMasterVolume(config.audio?.masterVolume ?? 1);
+    music.load().then(() => setReady(true));
+
+    const tick = () => {
+      if (!api.tl) return;
+      music.update(api.tl.time(), api.started && !api.tl.paused());
+    };
+    gsap.ticker.add(tick);
 
     const seek = (t, { play = true } = {}) => {
       const total = totalDuration(config);
@@ -53,6 +84,7 @@ export default function App() {
     api.start = () => {
       if (api.started || !api.tl) return;
       api.started = true;
+      setStarted(true);
       unlockAudio();
       api.tl.play(0);
     };
@@ -61,13 +93,18 @@ export default function App() {
       api.pausedByUser = true;
       api.tl.pause();
       seek(Number(params.get('t')) || 0, { play: false });
+      setStarted(true);
     }
     if (params.has('autostart')) api.start();
 
     document.fonts?.ready.then(() => {
       document.title = '▶ READY — Space로 시작';
     });
-    return () => gctx.revert();
+    return () => {
+      gsap.ticker.remove(tick);
+      music.stop();
+      gctx.revert();
+    };
   }, [refs, flags, api]);
 
   // 키보드
@@ -107,6 +144,8 @@ export default function App() {
     <>
       <Stage width={config.canvas.width} height={config.canvas.height}>
         <Scene refs={refs} config={config} />
+        {/* 음악 준비가 끝나면 안내 표시. 스페이스를 누르면 바로 사라집니다 */}
+        {!started && ready && <div className="startHint">PRESS SPACE</div>}
       </Stage>
       <Debug api={api} config={config} />
     </>

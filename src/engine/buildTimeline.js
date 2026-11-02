@@ -8,7 +8,7 @@ import { stepSound } from './audio.js';
 import { buildOpening } from '../scenes/opening.js';
 import { buildDrop } from '../scenes/drop.js';
 import { buildHud } from '../scenes/hud.js';
-import { buildRun } from '../scenes/run.js';
+import { buildGame } from '../scenes/game.js';
 import { buildMeet } from '../scenes/meet.js';
 import { buildClosing } from '../scenes/closing.js';
 import { buildOverlays } from '../scenes/overlays.js';
@@ -23,16 +23,16 @@ export function buildTimeline({ refs, config, flags }) {
   buildOpening(ctx);
   buildDrop(ctx);
   const hud = buildHud(ctx);
-  buildRun(ctx);
+  buildGame(ctx);
   buildMeet(ctx);
   buildClosing(ctx);
   buildOverlays(ctx);
   dialogue.addAll(tl);
 
-  // 마지막 화면 고정: 타임라인 길이를 영상 끝 시각으로 맞춤 (끝나면 마지막 상태 그대로 멈춤)
+  // 마지막 화면 고정: 타임라인 길이를 영상 끝 시각으로 맞춤
   tl.set({}, {}, totalDuration(config));
 
-  // 프레임이 갱신될 때마다: 도트 프레임/방향 교체 + 발걸음 이벤트 + 글자 타이핑
+  // 프레임이 갱신될 때마다: 도트 프레임/방향 교체 + 발걸음 이벤트 + 글자 타이핑 + HUD 숫자
   const update = () => {
     const t = tl.time();
     for (const who of ['groom', 'bride']) {

@@ -66,15 +66,17 @@ body {
   opacity: 0;
 }
 
-/* z-index: 맵(scene2) < 신랑 < 하트·HUD < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자 */
+/* z-index: 맵(scene2) < 신랑 < 하트·HUD·사진 < 게임 자막칸 < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자 */
 .scene2 { z-index: 3; }
 .character.groom { z-index: 5; }
 .heartsLayer { z-index: 6; visibility: visible; opacity: 1; }
 .hud { z-index: 6; }
+.photoLayer { z-index: 6; visibility: visible; opacity: 1; }
+.gameBubbleLayer { z-index: 7; visibility: visible; opacity: 1; inset: auto; width: max-content; }
 .banner { z-index: 8; }
 .flash { z-index: 9; background: #fff; }
 .blackout { z-index: 10; background: #000; }
-.closing { z-index: 11; visibility: visible; opacity: 1; }
+.closing { z-index: 11; visibility: visible; opacity: 1; display: grid; place-items: center; }
 
 /* ============================================================
    캐릭터 / 말풍선
@@ -98,6 +100,8 @@ body {
 .bubbleAnchor.above { left: calc(50% - var(--tailX)); bottom: calc(100% + var(--gapAbove)); }
 /* 캐릭터 오른쪽 (세로 중심 = 캐릭터 키 × centerY) */
 .bubbleAnchor.side { left: calc(100% + var(--gapSide)); top: calc(var(--centerY) * 100%); transform: translateY(-50%); }
+/* 게임 구간 자막칸: 캐릭터와 떨어진 화면 아래 고정 위치 (꼬리 없음) */
+.bubbleAnchor.game { left: 0; top: 0; }
 
 .bubble {
   position: relative;
@@ -110,6 +114,8 @@ body {
 }
 .above .bubble { transform-origin: var(--tailX) 100%; text-align: left; }
 .side .bubble { transform-origin: 0% 50%; text-align: left; }
+.game .bubble { transform-origin: 0% 100%; text-align: left; }
+.game .tailOuter, .game .tailInner { display: none; }
 .bubbleBox {
   background: #111;
   padding: 6px;
@@ -147,8 +153,8 @@ body {
 .sky { position: absolute; inset: 0; background: linear-gradient(#5aaefc, #9fd4ff 75%, #c9e8ff); }
 .parallax, .world { position: absolute; left: 0; top: 0; height: 100%; width: 100%; will-change: transform; }
 .prop { position: absolute; display: block; }
-.ground {
-  position: absolute; left: 0; width: 100%;
+.ground { /* left / width 는 World.jsx 가 인라인으로 (낭떠러지 구간은 비어 있음) */
+  position: absolute;
   background: linear-gradient(#6fd35a 0 16px, #3f9f3c 16px 28px, #a8622f 28px);
 }
 .ground::after { /* 흙 블록 무늬 */
@@ -208,6 +214,89 @@ body {
   paint-order: stroke fill;
 }
 
+/* 그랜드 피아노 (public/assets/images/grandPiano.png) */
+.pianoImg { position: absolute; display: block; height: auto; image-rendering: pixelated; }
+
+/* 물음표상자 (치면 빈 상자로 바뀜) */
+.qbox { position: absolute; will-change: transform; }
+.qboxFace, .qboxUsed { position: absolute; inset: 0; border: 4px solid #3b1d08; }
+.qboxFace {
+  background: #f2b632;
+  box-shadow: inset -7px -7px 0 #b7741c, inset 7px 7px 0 #ffe08a;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 34px;
+  line-height: 64px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 4px 4px 0 #8a4b0f;
+}
+.qboxUsed { background: #9a6a3c; box-shadow: inset -7px -7px 0 #6b4526, inset 7px 7px 0 #c08d5a; }
+
+/* 계단 */
+.stairStep {
+  position: absolute;
+  background: #c9a06a;
+  border: 4px solid #6b4526;
+  box-shadow: inset -7px -7px 0 rgba(107, 69, 38, 0.35), inset 7px 7px 0 rgba(255, 238, 206, 0.45);
+}
+
+/* 깃대 + 깃발 */
+.flagPole { position: absolute; width: 18px; background: #46c45f; border: 4px solid #16622c; }
+.flagBall { position: absolute; left: -15px; top: -30px; width: 40px; height: 40px; background: #6ff08a; border: 4px solid #16622c; border-radius: 50%; }
+.flagCloth { position: absolute; left: 14px; top: 12px; width: 96px; height: 72px; background: #fff; border-left: 4px solid #d8d8e4; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.flagBase { position: absolute; width: 74px; height: 64px; background: #c9a06a; border: 4px solid #6b4526; box-shadow: inset -7px -7px 0 rgba(107, 69, 38, 0.35); }
+
+/* 연도별 사진 액자 (오른쪽 위 팝업) */
+.photoFrame {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: #fdf6e6;
+  border: 8px solid #1a1a2e;
+  padding: 10px;
+  transform-origin: 85% 15%;
+  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.3);
+}
+.photoInner { position: relative; flex: 1; overflow: hidden; background: #2a2a3a; }
+.photoInner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.photoFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 40px;
+  color: #ffd84d;
+  text-shadow: 4px 4px 0 #1a1a2e;
+}
+.photoCaption {
+  height: 42px;
+  line-height: 42px;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 22px;
+  color: #1a1a2e;
+}
+
+/* 시작 안내 (음악 준비가 끝나면 표시 → 스페이스를 누르면 사라짐. 녹화에는 안 찍힘) */
+.startHint {
+  position: absolute;
+  left: 50%;
+  bottom: 110px;
+  transform: translateX(-50%);
+  z-index: 20;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 34px;
+  color: #ffffff;
+  text-shadow: 4px 4px 0 #1a1a2e;
+  animation: blinkHint 1.2s steps(1, end) infinite;
+}
+@keyframes blinkHint {
+  0%, 55% { opacity: 0.85; }
+  56%, 100% { opacity: 0.1; }
+}
+
 /* ============================================================
    HUD (하트 + TIME)
    ============================================================ */
@@ -241,15 +330,9 @@ body {
 .bannerMain { font-size: 128px; color: #ffd84d; }
 .bannerSub { margin-top: 10px; text-align: center; font-size: 52px; color: #fff; -webkit-text-stroke: 8px #1a1a2e; paint-order: stroke fill; text-shadow: 0 6px 0 #1a1a2e; }
 
-/* 마무리 감사 인사: 검은 화면 위 흰 글씨. 한 줄씩 나타나 영상 끝까지 고정 */
-.closing {
-  bottom: auto;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+/* 마무리 감사 인사: 검은 화면 위 흰 글씨. 한 줄씩 떠올랐다 사라짐 (전부 화면 가운데에 겹쳐 둠) */
 .clLine {
+  grid-area: 1 / 1;
   visibility: hidden;
   opacity: 0;
   text-align: center;
