@@ -1,13 +1,13 @@
 // npm run check — config.js 검사 (코드를 돌리지 않고도 타이밍 실수를 잡아줍니다)
 import { config } from '../src/config.js';
-import { lineTiming, fillTokens, obstacleX, OBSTACLE_TYPES, GROOM_HIT_W } from '../src/engine/timing.js';
+import { lineTiming, fillTokens, GROOM_HIT_W, PIANO_SIZE, jumpWindow, totalDuration } from '../src/engine/timing.js';
 
 const errors = [];
 const warns = [];
 const f = (n) => n.toFixed(2).padStart(6);
 
 // 1) 장면 구간이 이어지는지
-const order = ['black', 'intro', 'stage1', 'clear', 'stage2', 'ending'];
+const order = Object.keys(config.scenes);
 for (let i = 0; i < order.length; i++) {
   const s = config.scenes[order[i]];
   if (!s) { errors.push(`scenes.${order[i]} 가 없습니다`); continue; }
@@ -19,7 +19,7 @@ for (let i = 0; i < order.length; i++) {
 }
 
 // 2) 총 길이
-const total = config.scenes.ending.end;
+const total = totalDuration(config);
 const mm = Math.floor(total / 60);
 const ss = (total % 60).toFixed(1);
 if (total >= 120) errors.push(`총 길이 ${total}초 — 예식장 규정(2분 이내) 초과!`);
@@ -55,21 +55,20 @@ for (const b of config.banners) {
 if (config.finalCard.at >= total) errors.push(`finalCard.at(${config.finalCard.at})이 영상 끝(${total}) 이후예요`);
 else if (total - config.finalCard.at < 3) warns.push(`마지막 고정 화면이 ${(total - config.finalCard.at).toFixed(1)}초뿐이에요 (하객이 읽으려면 4초 이상 추천)`);
 
-// 5) STAGE 2 장애물
-const s2 = config.scenes.stage2;
-const air = config.stage2.jumpAir;
-const obs = [...config.stage2.obstacles].sort((a, b) => a.apexAt - b.apexAt);
-obs.forEach((ob, i) => {
-  const def = OBSTACLE_TYPES[ob.type];
-  if (!def) { errors.push(`장애물 #${i + 1}: type '${ob.type}' 을(를) 모릅니다 (${Object.keys(OBSTACLE_TYPES).join(', ')})`); return; }
-  if (ob.apexAt - air / 2 < s2.start) errors.push(`장애물 #${i + 1}: 점프 시작(${(ob.apexAt - air / 2).toFixed(2)})이 STAGE 2 시작(${s2.start})보다 빨라요`);
-  if (ob.apexAt + air / 2 > s2.end) errors.push(`장애물 #${i + 1}: 착지(${(ob.apexAt + air / 2).toFixed(2)})가 STAGE 2 끝(${s2.end})을 넘어요`);
-  if (i > 0 && ob.apexAt - obs[i - 1].apexAt < air) errors.push(`장애물 #${i}, #${i + 1}: 점프가 겹쳐요 (간격 ${(ob.apexAt - obs[i - 1].apexAt).toFixed(2)}초 < 체공 ${air}초)`);
-  const needAir = (def.w + GROOM_HIT_W) / config.stage2.speed;
-  if (air < needAir) errors.push(`장애물 #${i + 1}(${ob.type}): 체공 ${air}초로는 못 넘어요 — 최소 ${needAir.toFixed(2)}초 필요 (jumpAir를 늘리거나 speed를 줄이세요)`);
-  if (config.stage2.jumpHeight < def.h + 20) errors.push(`장애물 #${i + 1}(${ob.type}): 점프 높이 ${config.stage2.jumpHeight}px 가 장애물 높이 ${def.h}px 보다 낮아요`);
-  void obstacleX;
+// 5) 달리기: 점프 장애물 (지금은 피아노만 — D단계에서 글자 장애물 추가)
+const run = config.scenes.run;
+const M = config.map;
+const jumps = [{ name: '피아노', apexAt: M.piano.apexAt, ...PIANO_SIZE }];
+jumps.forEach((o) => {
+  const j = jumpWindow(config, o.apexAt);
+  if (j.takeoff < run.start + 0.2) errors.push(`${o.name}: 점프 시작(${j.takeoff.toFixed(2)})이 달리기 시작(${run.start}) 직후보다 빨라요 — apexAt 을 늦추세요`);
+  if (j.land > run.end) errors.push(`${o.name}: 착지(${j.land.toFixed(2)})가 달리기 끝(${run.end})을 넘어요`);
+  const needAir = (o.w + GROOM_HIT_W) / M.speed;
+  if (M.jump.air < needAir) errors.push(`${o.name}: 체공 ${M.jump.air}초로는 못 넘어요 — 최소 ${needAir.toFixed(2)}초 필요 (map.jump.air 를 늘리거나 speed 를 줄이세요)`);
+  if (M.jump.height < o.h + 20) errors.push(`${o.name}: 점프 높이 ${M.jump.height}px 가 장애물 높이 ${o.h}px 보다 낮아요`);
 });
+const obs = jumps.map((o) => ({ type: o.name, apexAt: o.apexAt }));
+const air = M.jump.air;
 
 // 6) 자리표시자(아직 안 채운 값)
 if (/^O+$/i.test(config.couple.groom) || /^O+$/i.test(config.couple.bride)) warns.push('신랑/신부 이름이 아직 OOO 입니다 (config.couple)');

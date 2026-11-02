@@ -1,46 +1,30 @@
 // 화면에 올라가는 모든 요소를 층(layer)으로 쌓아 둔 곳. 움직임은 전부 src/scenes/*.js 의 타임라인이 담당.
-//  z-index 순서(styles.css): spot < 피아노방 < 들판(scene2) < 신랑 < 하트 < 마지막카드 < 배너 < 번쩍임
+//  z-index 순서(styles.css): 맵(scene2) < 신랑 < 하트 < HUD < 마지막카드 < 배너 < 번쩍임
+//  오프닝(0~23초)은 아무 배경 없이 순수 검정(.canvas 배경색)
 import Character from './Character.jsx';
-import PianoRoom from './PianoRoom.jsx';
 import World from './World.jsx';
 import { groomSprite } from '../sprites/groom.js';
-import { heartSprite } from '../sprites/heart.js';
-import { drawMatrix } from '../sprites/draw.js';
 import { fillTokens } from '../engine/timing.js';
-
-function Heart({ palette, scale, innerRef }) {
-  return (
-    <canvas
-      ref={(el) => {
-        innerRef(el);
-        if (el) drawMatrix(el, heartSprite, palette);
-      }}
-      className="heart"
-      width={heartSprite.w}
-      height={heartSprite.h}
-      style={{ width: heartSprite.w * scale, height: heartSprite.h * scale, imageRendering: 'pixelated' }}
-    />
-  );
-}
+import Heart from './Heart.jsx';
+import Hud from './Hud.jsx';
 
 export default function Scene({ refs, config }) {
-  const { groundY, spriteScale, stage1GroomX } = config.layout;
+  const { groundY } = config.layout;
+  const spriteScale = config.sprites.scale;
   const charW = groomSprite.w * spriteScale;
   const charH = groomSprite.h * spriteScale;
   const charStyle = { width: charW, height: charH, top: groundY - charH };
 
   return (
     <>
-      {/* 오프닝 스포트라이트 */}
-      <div className="layer spot" ref={(el) => (refs.spot = el)} style={{ left: stage1GroomX - 450, top: groundY - 600, width: 900, height: 900 }} />
-
-      <PianoRoom refs={refs} config={config} />
       <World refs={refs} config={config} charStyle={charStyle} charW={charW} />
 
       {/* 신랑 (화면 좌표 기준으로 움직임) */}
       <Character who="groom" sprite={groomSprite} palette={config.palette} scale={spriteScale} refs={refs} bubble={config.bubble} style={{ ...charStyle, left: 0 }} />
 
-      {/* 하트 */}
+      <Hud refs={refs} config={config} />
+
+      {/* 만남 하트 */}
       <div className="layer heartsLayer">
         {Array.from({ length: config.ending.heartCount }, (_, i) => (
           <Heart key={i} palette={config.palette} scale={6} innerRef={(el) => (refs.hearts[i] = el)} />

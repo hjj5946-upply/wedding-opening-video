@@ -1,9 +1,9 @@
-// 92~108초: 맵이 멈추고 신부가 보임 → 신랑이 걸어가 만남 → 하트 → 마무리 멘트 → 마지막 카드(고정)
+// (임시 — E단계에서 다시 만듦) 맵이 멈추고 신부가 보임 → 신랑이 걸어가 만남 → 하트
 export function buildEnding({ tl, refs, config, poses }) {
-  const S = config.scenes.ending;
+  const S = config.scenes.meet;
   const E = config.ending;
   const L = config.layout;
-  const brideX = config.stage2.brideScreenX;
+  const brideX = config.ending.brideScreenX;
   const meetX = brideX - E.gap;
 
   // 신부는 먼저 손 흔들기, 신랑은 걸어가서 만남

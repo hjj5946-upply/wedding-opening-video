@@ -12,6 +12,14 @@
   src: url('../node_modules/galmuri/dist/Galmuri11-Bold.woff2') format('woff2');
 }
 
+/* 영문 HUD 레트로 폰트 Press Start 2P (npm 패키지 @fontsource/press-start-2p, OFL 라이선스). 영문/숫자(latin)만 */
+@font-face {
+  font-family: 'Press Start 2P';
+  font-weight: 400;
+  font-display: block;
+  src: url('../node_modules/@fontsource/press-start-2p/files/press-start-2p-latin-400-normal.woff2') format('woff2');
+}
+
 /* ============================================================
    전역: 검은 배경, 마우스 커서 숨김, 1920×1080 고정 캔버스
    ============================================================ */
@@ -58,12 +66,11 @@ body {
   opacity: 0;
 }
 
-/* z-index: spot < 피아노방 < 들판 < 신랑 < 하트 < 마지막카드 < 배너 < 번쩍임 */
-.spot { z-index: 1; background: radial-gradient(circle 430px at 50% 50%, rgba(140, 160, 255, 0.42) 0%, rgba(140, 160, 255, 0.16) 45%, rgba(0, 0, 0, 0) 100%); inset: auto; }
-.bgPiano { z-index: 2; }
+/* z-index: 맵(scene2) < 신랑 < 하트 < 마지막카드 < 배너 < 번쩍임 */
 .scene2 { z-index: 3; }
 .character.groom { z-index: 5; }
 .heartsLayer { z-index: 6; visibility: visible; opacity: 1; }
+.hud { z-index: 6; }
 .finalCard { z-index: 7; }
 .banner { z-index: 8; }
 .flash { z-index: 9; background: #fff; }
@@ -80,18 +87,28 @@ body {
   inset: 0;
 }
 
-.bubble {
+.bubbleAnchor {
   position: absolute;
-  left: 50%;
-  bottom: calc(100% + 30px);
-  width: max-content;
   z-index: 10;
+  width: max-content;
+  pointer-events: none;
+}
+/* 머리 위 */
+.bubbleAnchor.above { left: calc(50% - var(--tailX)); bottom: calc(100% + var(--gapAbove)); }
+/* 캐릭터 오른쪽 (세로 중심 = 캐릭터 키 × centerY) */
+.bubbleAnchor.side { left: calc(100% + var(--gapSide)); top: calc(var(--centerY) * 100%); transform: translateY(-50%); }
+
+.bubble {
+  position: relative;
+  width: max-content;
   color: #111;
   line-height: 1.35;
   text-align: center;
   word-break: keep-all;
   white-space: pre-wrap;
 }
+.above .bubble { transform-origin: var(--tailX) 100%; text-align: left; }
+.side .bubble { transform-origin: 0% 50%; text-align: left; }
 .bubbleBox {
   background: #111;
   padding: 6px;
@@ -99,92 +116,89 @@ body {
 }
 .bubbleFill {
   background: #fff;
-  padding: 20px 38px;
+  padding: 0.35em 0.65em;
   clip-path: polygon(0 8px, 8px 8px, 8px 0, calc(100% - 8px) 0, calc(100% - 8px) 8px, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 8px calc(100% - 8px), 0 calc(100% - 8px));
 }
 .bubbleRest {
   opacity: 0; /* 아직 안 나온 글자: 자리만 차지 */
 }
+/* 꼬리 (계단 모양 도트 삼각형) */
 .tailOuter,
-.tailInner {
-  position: absolute;
-  left: 50%;
-  margin-left: -21px;
-  width: 42px;
+.tailInner { position: absolute; }
+.above .tailOuter,
+.above .tailInner {
+  left: var(--tailX);
   clip-path: polygon(0 0, 100% 0, 100% 34%, 84% 34%, 84% 67%, 67% 67%, 67% 100%, 33% 100%, 33% 67%, 16% 67%, 16% 34%, 0 34%);
 }
-.tailOuter { bottom: -26px; height: 32px; background: #111; }
-.tailInner { bottom: -18px; height: 26px; width: 30px; margin-left: -15px; background: #fff; }
+.above .tailOuter { bottom: -26px; width: 42px; margin-left: -21px; height: 32px; background: #111; }
+.above .tailInner { bottom: -18px; width: 30px; margin-left: -15px; height: 26px; background: #fff; }
+.side .tailOuter,
+.side .tailInner {
+  top: 50%;
+  clip-path: polygon(100% 0, 100% 100%, 66% 100%, 66% 84%, 33% 84%, 33% 67%, 0 67%, 0 33%, 33% 33%, 33% 16%, 66% 16%, 66% 0);
+}
+.side .tailOuter { left: -26px; height: 42px; margin-top: -21px; width: 32px; background: #111; }
+.side .tailInner { left: -18px; height: 30px; margin-top: -15px; width: 26px; background: #fff; }
 
 /* ============================================================
-   STAGE 1 배경: 피아노 학원
+   플랫포머 맵: 하늘 / 구름·언덕(시차) / 땅 / 소품
    ============================================================ */
-.wall { position: absolute; left: 0; top: 0; width: 100%; background: linear-gradient(#2a2d55, #20224a); }
-.wall::after { /* 벽 아래쪽 띠(걸레받이) */
-  content: '';
-  position: absolute;
-  left: 0; right: 0; bottom: 0; height: 24px;
-  background: #15162f;
-}
-.floor {
-  position: absolute; left: 0; width: 100%;
-  background: repeating-linear-gradient(90deg, #7a5233 0 120px, #5f3f26 120px 124px);
-}
-.frameArt {
-  position: absolute;
-  background: #d8c7a0;
-  border: 10px solid #6b4a2a;
-  box-shadow: inset 0 0 0 10px #8c9fd6;
-}
-.piano {
-  position: absolute;
-  width: 600px; height: 330px;
-  background: #15151f;
-  border: 8px solid #08080e;
-  box-shadow: inset 0 0 0 6px #2b2b40;
-}
-.pianoStand { position: absolute; left: 40px; top: 20px; width: 520px; height: 90px; background: #222235; border: 6px solid #0b0b14; }
-.pianoKeys {
-  position: absolute; left: 20px; top: 170px; width: 560px; height: 74px;
-  background: repeating-linear-gradient(90deg, #f6f6f6 0 38px, #555 38px 40px);
-  border: 4px solid #0b0b14;
-}
-.pianoKeys i { position: absolute; top: 0; width: 26px; height: 46px; background: #15151f; }
-.pianoStool { position: absolute; width: 120px; height: 70px; background: #4a3020; border: 6px solid #2a1a10; }
-.note {
-  position: absolute;
-  font-size: 56px;
-  color: #ffe58a;
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* ============================================================
-   STAGE 2 배경: 하늘 / 구름 / 땅 / 장애물
-   ============================================================ */
-.sky { position: absolute; inset: 0; background: linear-gradient(#4db6ff, #b8e6ff 70%, #e8f7ff); }
-.clouds, .world { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
-.cloud, .bush { position: absolute; }
+.sky { position: absolute; inset: 0; background: linear-gradient(#5aaefc, #9fd4ff 75%, #c9e8ff); }
+.parallax, .world { position: absolute; left: 0; top: 0; height: 100%; width: 100%; will-change: transform; }
+.prop { position: absolute; display: block; }
 .ground {
   position: absolute; left: 0; width: 100%;
-  background: linear-gradient(#63d04f 0 20px, #2f8f3a 20px 32px, #8b5a33 32px);
+  background: linear-gradient(#6fd35a 0 16px, #3f9f3c 16px 28px, #a8622f 28px);
 }
-.ground::after {
+.ground::after { /* 흙 블록 무늬 */
   content: '';
-  position: absolute; left: 0; right: 0; top: 32px; bottom: 0;
-  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0.18) 4px, transparent 4px), linear-gradient(rgba(0, 0, 0, 0.18) 4px, transparent 4px);
-  background-size: 64px 64px;
+  position: absolute; left: 0; right: 0; top: 28px; bottom: 0;
+  background-image:
+    linear-gradient(90deg, rgba(60, 25, 5, 0.35) 4px, transparent 4px),
+    linear-gradient(rgba(60, 25, 5, 0.35) 4px, transparent 4px),
+    linear-gradient(rgba(255, 220, 170, 0.18) 4px, transparent 4px);
+  background-size: 64px 64px, 64px 64px, 64px 64px;
+  background-position: 0 0, 0 0, 4px 4px;
 }
-.obstacle { position: absolute; }
-.obstacle.crate {
-  background-color: #c98a3a;
-  border: 8px solid #5b3414;
-  background-image: linear-gradient(45deg, transparent 46%, #5b3414 46% 54%, transparent 54%), linear-gradient(-45deg, transparent 46%, #5b3414 46% 54%, transparent 54%);
+/* 초록 파이프 (일반적인 플랫포머 요소) */
+.pipe { position: absolute; width: 144px; }
+.pipeRim, .pipeBody { position: absolute; border: 6px solid #12401a; }
+.pipeRim { left: 0; top: 0; width: 144px; height: 56px; background: linear-gradient(90deg, #2e9a3e 0 10%, #8ce673 10% 26%, #45bf4c 26% 78%, #2a8a37 78%); z-index: 1; }
+.pipeBody { left: 12px; top: 50px; width: 120px; bottom: 0; border-bottom: none; background: linear-gradient(90deg, #2e9a3e 0 10%, #8ce673 10% 26%, #45bf4c 26% 78%, #2a8a37 78%); }
+/* 떠 있는 벽돌 / 물음표 블록 */
+.block { position: absolute; width: 64px; height: 64px; border: 4px solid #3b1d08; }
+.block.brick {
+  background-color: #c4622d;
+  background-image: linear-gradient(#3b1d08 4px, transparent 4px), linear-gradient(90deg, #3b1d08 4px, transparent 4px), linear-gradient(90deg, #3b1d08 4px, transparent 4px);
+  background-size: 100% 28px, 28px 28px, 28px 28px;
+  background-position: 0 24px, 14px 0, 0 28px;
+  background-repeat: repeat-y, no-repeat, no-repeat;
 }
-.obstacle.spike {
-  background: #6f788f; /* 하늘색 배경에서 잘 보이는 강철색 */
-  clip-path: polygon(0 100%, 12.5% 0, 25% 100%, 37.5% 0, 50% 100%, 62.5% 0, 75% 100%, 87.5% 0, 100% 100%);
+.block.question {
+  background: #f2b632;
+  box-shadow: inset -6px -6px 0 #b7741c, inset 6px 6px 0 #ffe08a;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 30px;
+  line-height: 56px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 4px 4px 0 #8a4b0f;
 }
+
+/* ============================================================
+   HUD (하트 + TIME)
+   ============================================================ */
+.hudHearts { position: absolute; display: flex; }
+.hudHeart { display: block; filter: drop-shadow(4px 4px 0 #1a1a2e); }
+.hudTime {
+  position: absolute;
+  text-align: right;
+  font-family: 'Press Start 2P', monospace;
+  color: #fff;
+  text-shadow: 5px 5px 0 #1a1a2e;
+  -webkit-font-smoothing: none;
+}
+.hudLabel { color: #ffd84d; margin-bottom: 14px; }
 
 /* ============================================================
    하트 / 배너 / 마지막 카드
@@ -222,3 +236,23 @@ body {
   white-space: pre;
   pointer-events: none;
 }
+
+/* ============================================================
+   ?sprites 도트 확인 화면 (개발용)
+   ============================================================ */
+.gallery { position: absolute; inset: 0; background: #000; color: #fff; font-size: 18px; }
+.gHead { padding: 14px 24px; font-size: 22px; background: #222; }
+.gRow { padding: 10px 24px 12px; }
+.gBlack { background: #000; }
+.gSky { background: #6cc4ff; color: #111; }
+.gSplit { background: linear-gradient(90deg, #000 0 560px, #6cc4ff 560px); }
+.gSplit .gTitle { color: #fff; }
+.gTitle { font-size: 20px; margin-bottom: 6px; }
+.gCells { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; }
+.gCell { display: flex; flex-direction: column; align-items: center; min-width: 104px; }
+.gLabel { font-size: 15px; margin-top: 4px; white-space: nowrap; }
+.gSplit .gCell:nth-child(-n+4) .gLabel { color: #fff; }
+.gSplit .gLabel { color: #111; }
+.gLabel.dim { opacity: 0.6; }
+.gGap { width: 70px; }
+.gInfo { align-self: center; margin-left: 30px; font-size: 22px; color: #7f7; white-space: pre; }

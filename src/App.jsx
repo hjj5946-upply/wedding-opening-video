@@ -2,7 +2,7 @@
 //
 //  Space : 영상 시작 (소리 허용도 이때 풀림)        R : 처음 상태로 (페이지 새로고침)
 //  D     : 디버그 표시 켜기/끄기                   P : 일시정지/재개
-//  ← →   : ±5초   [ ] : ±1초   0~5 : 장면 시작으로 점프  (디버그 켜진 상태에서만)
+//  ← →   : ±5초   [ ] : ±1초   0~8 : 장면 시작으로 점프  (디버그 켜진 상태에서만)
 //
 //  주소 옵션:  ?debug=1   처음부터 디버그 표시
 //              ?t=62      62초 지점에서 멈춘 채로 열기 (화면 확인/캡처용)
@@ -14,13 +14,13 @@ import Stage from './components/Stage.jsx';
 import Scene from './components/Scene.jsx';
 import Debug from './components/Debug.jsx';
 import { buildTimeline } from './engine/buildTimeline.js';
-import { startAmbient } from './engine/ambient.js';
+import { totalDuration } from './engine/timing.js';
 import { unlockAudio } from './engine/audio.js';
 
-const JUMP_ORDER = ['black', 'intro', 'stage1', 'clear', 'stage2', 'ending']; // 숫자키 0~5
+const JUMP_ORDER = Object.keys(config.scenes); // 숫자키 0~8 = 장면 순서대로
 
 export default function App() {
-  const refs = useRef({ banners: {}, notes: [], hearts: [] }).current;
+  const refs = useRef({ banners: {}, hearts: [], hudHearts: [] }).current;
   const flags = useRef({ silent: false }).current;
   const api = useRef({ tl: null, update: null, started: false, pausedByUser: false, debug: false }).current;
 
@@ -34,12 +34,14 @@ export default function App() {
       const built = buildTimeline({ refs, config, flags });
       api.tl = built.tl;
       api.update = built.update;
+      api.steps = built.steps;
     });
     api.update();
 
     const seek = (t, { play = true } = {}) => {
-      const total = config.scenes.ending.end;
+      const total = totalDuration(config);
       flags.silent = true;
+      api.steps.reset();
       api.tl.time(Math.max(0, Math.min(total, t)), false);
       api.update();
       setTimeout(() => (flags.silent = false), 100);
@@ -52,7 +54,6 @@ export default function App() {
       if (api.started || !api.tl) return;
       api.started = true;
       unlockAudio();
-      startAmbient(refs);
       api.tl.play(0);
     };
 
@@ -93,9 +94,9 @@ export default function App() {
       else if (e.code === 'ArrowLeft') api.seek(t - 5);
       else if (e.code === 'BracketRight') api.seek(t + 1);
       else if (e.code === 'BracketLeft') api.seek(t - 1);
-      else if (/^Digit[0-5]$/.test(e.code)) {
+      else if (/^Digit[0-9]$/.test(e.code)) {
         const name = JUMP_ORDER[Number(e.code.slice(5))];
-        api.seek(config.scenes[name].start);
+        if (name) api.seek(config.scenes[name].start);
       }
     };
     window.addEventListener('keydown', onKey);

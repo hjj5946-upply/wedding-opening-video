@@ -25,3 +25,14 @@ export function blip({ base = 520, range = 220, duration = 0.06, volume = 0.12, 
   osc.start(t);
   osc.stop(t + duration + 0.02);
 }
+
+/**
+ * 발걸음 소리 (config.sfx.step). enabled: false 면 아무것도 안 함.
+ * 지금은 "자리만" 있는 아주 짧은 저음 '톡' 합성음. 나중에 음원을 쓰려면 여기만 바꾸면 됩니다.
+ *   예) const a = new Audio('./assets/audio/step.wav'); a.volume = cfg.volume; a.play();
+ */
+export function stepSound(event, cfg) {
+  if (!cfg?.enabled || !ctx) return;
+  const base = cfg.pitch?.[event.who] ?? 120;
+  blip({ base, range: 30, duration: 0.04, volume: cfg.volume ?? 0.08, type: 'triangle' });
+}
