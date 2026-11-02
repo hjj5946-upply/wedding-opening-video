@@ -4,8 +4,8 @@
 import Character from './Character.jsx';
 import PixelArt from './PixelArt.jsx';
 import { brideSprite } from '../sprites/bride.js';
-import { hill, cloud, bush } from '../sprites/props.js';
-import { allBoxes, allPits, allObstacles, stairsInfo, flagInfo, scrollMax, worldWidth } from '../engine/timing.js';
+import { hill, cloud, bush, turtleA, turtleB } from '../sprites/props.js';
+import { allBoxes, allPits, allObstacles, turtleInfo, stairsInfo, flagInfo, scrollMax, worldWidth } from '../engine/timing.js';
 
 // 매번 같은 배치가 나오도록 고정 시드 난수
 function mulberry32(a) {
@@ -49,6 +49,7 @@ export default function World({ refs, config, charStyle, charW }) {
   const boxes = allBoxes(config);
   const pits = allPits(config);
   const words = allObstacles(config);
+  const turtle = turtleInfo(config);
   const stairs = stairsInfo(config);
   const flag = flagInfo(config);
   const P = config.piano;
@@ -68,6 +69,7 @@ export default function World({ refs, config, charStyle, charW }) {
   const busy = [
     [P.x - 120, P.x + P.w + 120],
     ...words.map((o) => [o.left - 200, o.left + o.w + 200]),
+    ...(turtle ? [[turtle.left - turtle.driftTotal - 200, turtle.left + turtle.w + 200]] : []),
     ...pits.map((p) => [p.left - 160, p.left + p.w + 160]),
     ...M.pipes.map((p) => [p.x - 100, p.x + 250]),
     [stairs.left - 300, worldW],
@@ -128,17 +130,23 @@ export default function World({ refs, config, charStyle, charW }) {
           </div>
         ))}
 
-        {/* 글자 장애물 — 부딪히는 것(hit)은 넘어지며 사라짐(scenes/game.js) */}
+        {/* 벽돌 장애물 — 부딪히는 것(hit)은 넘어지며 사라짐(scenes/game.js) */}
         {words.map((o) => (
           <div
             key={o.id}
-            className={`wordObstacle ${o.hit ? 'hitType' : 'jumpType'}`}
+            className="brickObstacle"
             ref={(el) => (refs.obstacles[o.id] = el)}
-            style={{ left: o.left, top: groundY - o.h, width: o.w, height: o.h, fontSize: o.fontSize }}
-          >
-            <span>{o.text}</span>
-          </div>
+            style={{ left: o.left, top: groundY - o.h, width: o.w, height: o.h }}
+          />
         ))}
+
+        {/* 거북이 몬스터 1마리 (왼쪽으로 기어옴 — 신랑이 점프로 넘음) */}
+        {turtle && (
+          <div className="turtle" ref={(el) => (refs.turtle = el)} style={{ left: turtle.left, top: groundY - turtle.h, width: turtle.w, height: turtle.h }}>
+            <PixelArt art={turtleA} cell={turtle.w / 21} className="turtleFrame tA" />
+            <PixelArt art={turtleB} cell={turtle.w / 21} className="turtleFrame tB" />
+          </div>
+        )}
 
         {/* 계단 (마지막 구간) */}
         {Array.from({ length: stairs.steps }, (_, i) => (

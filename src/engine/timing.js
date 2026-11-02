@@ -122,23 +122,41 @@ export function allPits(config) {
   return (config.map.pits ?? []).map((p, i) => pitInfo(config, p, i));
 }
 
-/** 글자 장애물 안의 글자 크기(px): 상자 안에 꽉 차되 넘치지 않게 */
-export function obstacleFontSize(o) {
-  const chars = [...o.text].length;
-  return Math.floor(Math.min(o.h * 0.52, (o.w - 36) / chars));
-}
-
-/** 글자 장애물 1개의 위치/크기/타이밍 */
+/** 벽돌 장애물 1개의 위치/크기/타이밍 (글자는 없고 작은 벽돌 블록) */
 export function obstacleInfo(config, o) {
   const left = o.hit ? leftForHit(config, o.hitAt) : leftForApex(config, o.apexAt, o.w);
   return {
     ...o,
+    label: o.label ?? o.id,
     left,
     at: o.hit ? o.hitAt : o.apexAt,
-    fontSize: obstacleFontSize(o),
     jump: o.hit ? null : jumpWindow(config, o.apexAt),
     hitFx: o.hit ? hitWindow(config, o.hitAt) : null,
   };
+}
+
+/** 거북이 1마리: 맵보다 speed 만큼 더 빨리 왼쪽으로 기어옴 → apexAt 에 신랑 발밑에 오도록 자동 배치 */
+export function turtleInfo(config) {
+  const T = config.map.turtle;
+  if (!T) return null;
+  const g = config.scenes.game;
+  const span = mapStopAt(config) - g.start;
+  const v = T.speed ?? 0;
+  return {
+    ...T,
+    left: config.map.groomX - T.w / 2 + scrollAt(config, T.apexAt) + v * (T.apexAt - g.start),
+    driftTotal: v * span, // 게임 구간 동안 추가로 왼쪽으로 가는 거리
+    driftDur: span,
+    jump: jumpWindow(config, T.apexAt),
+  };
+}
+
+/** 사진 1장(동그라미)의 타이밍: 상자를 친 자리에서 떠올랐다가 "팡" */
+export function photoTiming(config, apexAt) {
+  const P = config.photos;
+  const start = apexAt + P.delay;
+  const burstAt = start + P.popIn + P.hold;
+  return { start, popEnd: start + P.popIn, burstAt, end: burstAt + P.burst };
 }
 
 export function allObstacles(config) {
@@ -217,9 +235,11 @@ export function gameEvents(config) {
   for (const b of allBoxes(config)) ev.push({ name: `${b.year}년 상자`, kind: 'box', from: b.jump.takeoff, to: b.jump.land, at: b.apexAt, left: b.left, w: b.w });
   for (const p of allPits(config)) ev.push({ name: `낭떠러지 ${p.id}`, kind: 'pit', from: p.jump.takeoff, to: p.jump.land, at: p.apexAt, left: p.left, w: p.w });
   for (const o of allObstacles(config)) {
-    if (o.hit) ev.push({ name: `'${o.text}' 충돌`, kind: 'hit', from: o.hitFx.start, to: o.hitFx.blinkEnd, at: o.hitAt, left: o.left, w: o.w });
-    else ev.push({ name: `'${o.text}' 점프`, kind: 'jump', from: o.jump.takeoff, to: o.jump.land, at: o.apexAt, left: o.left, w: o.w });
+    if (o.hit) ev.push({ name: `${o.label} 충돌`, kind: 'hit', from: o.hitFx.start, to: o.hitFx.blinkEnd, at: o.hitAt, left: o.left, w: o.w });
+    else ev.push({ name: `${o.label} 점프`, kind: 'jump', from: o.jump.takeoff, to: o.jump.land, at: o.apexAt, left: o.left, w: o.w });
   }
+  const tt = turtleInfo(config);
+  if (tt) ev.push({ name: '거북이 점프', kind: 'turtle', from: tt.jump.takeoff, to: tt.jump.land, at: tt.apexAt, left: tt.left, w: tt.w });
   const st = stairsInfo(config);
   ev.push({ name: '계단 오르기', kind: 'stairs', from: st.climbStart, to: st.climbEnd, at: st.climbStart, left: st.left, w: st.width });
   const fl = flagInfo(config);

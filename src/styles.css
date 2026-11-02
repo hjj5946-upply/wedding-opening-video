@@ -192,28 +192,6 @@ body {
   text-shadow: 4px 4px 0 #8a4b0f;
 }
 
-/* 글자 장애물 ("수많은" / "우여곡절" ...). 부딪히는 것은 오른쪽 아래를 축으로 앞으로 넘어짐 */
-.wordObstacle {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 6px solid #2a1a0c;
-  background-color: #c4622d;
-  box-shadow: inset -10px -10px 0 #8a3f17, inset 10px 10px 0 #e8975e;
-  transform-origin: 100% 100%;
-  will-change: transform;
-}
-.wordObstacle span {
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 2px;
-  white-space: nowrap;
-  color: #fff;
-  -webkit-text-stroke: 8px #2a1a0c;
-  paint-order: stroke fill;
-}
-
 /* 그랜드 피아노 (public/assets/images/grandPiano.png) */
 .pianoImg { position: absolute; display: block; height: auto; image-rendering: pixelated; }
 
@@ -246,39 +224,6 @@ body {
 .flagCloth { position: absolute; left: 14px; top: 12px; width: 96px; height: 72px; background: #fff; border-left: 4px solid #d8d8e4; clip-path: polygon(0 0, 100% 50%, 0 100%); }
 .flagBase { position: absolute; width: 74px; height: 64px; background: #c9a06a; border: 4px solid #6b4526; box-shadow: inset -7px -7px 0 rgba(107, 69, 38, 0.35); }
 
-/* 연도별 사진 액자 (오른쪽 위 팝업) */
-.photoFrame {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  background: #fdf6e6;
-  border: 8px solid #1a1a2e;
-  padding: 10px;
-  transform-origin: 85% 15%;
-  box-shadow: 10px 10px 0 rgba(0, 0, 0, 0.3);
-}
-.photoInner { position: relative; flex: 1; overflow: hidden; background: #2a2a3a; }
-.photoInner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-.photoFallback {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 40px;
-  color: #ffd84d;
-  text-shadow: 4px 4px 0 #1a1a2e;
-}
-.photoCaption {
-  height: 42px;
-  line-height: 42px;
-  text-align: center;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 22px;
-  color: #1a1a2e;
-}
-
 /* 시작 안내 (음악 준비가 끝나면 표시 → 스페이스를 누르면 사라짐. 녹화에는 안 찍힘) */
 .startHint {
   position: absolute;
@@ -297,6 +242,100 @@ body {
   56%, 100% { opacity: 0.1; }
 }
 
+/* 벽돌 장애물 (글자 없음). 부딪히는 것은 오른쪽 아래를 축으로 앞으로 넘어짐 */
+.brickObstacle {
+  position: absolute;
+  background-color: #c4622d;
+  border: 5px solid #3b1d08;
+  background-image: linear-gradient(#3b1d08 5px, transparent 5px), linear-gradient(90deg, #3b1d08 5px, transparent 5px), linear-gradient(90deg, #3b1d08 5px, transparent 5px);
+  background-size: 100% 36px, 36px 36px, 36px 36px;
+  background-position: 0 31px, 18px 0, 0 36px;
+  background-repeat: repeat-y, repeat, repeat;
+  box-shadow: inset -8px -8px 0 rgba(90, 40, 10, 0.45), inset 8px 8px 0 rgba(255, 200, 150, 0.35);
+  transform-origin: 100% 100%;
+  will-change: transform;
+}
+
+/* 거북이 몬스터 (2프레임을 CSS로 번갈아 보여 다리가 움직이는 느낌) */
+.turtle { position: absolute; }
+.turtleFrame { position: absolute; left: 0; top: 0; }
+.turtleFrame.tA { animation: turtleA 0.44s steps(1, end) infinite; }
+.turtleFrame.tB { animation: turtleB 0.44s steps(1, end) infinite; }
+@keyframes turtleA {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes turtleB {
+  0%, 49.9% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+/* 연도별 사진 — 물음표상자를 친 자리에서 동그랗게 떠오름 */
+.photoCircle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #2a2a3a;
+  border: 10px solid #fdf6e6;
+  box-shadow: 0 0 0 7px #1a1a2e;
+  visibility: hidden;
+  opacity: 0;
+}
+.photoCircle img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.photoFallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 68px;
+  color: #ffd84d;
+  text-shadow: 5px 5px 0 #1a1a2e;
+}
+.photoFallback span { font-size: 26px; color: #fff; }
+.photoYear {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14px;
+  text-align: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 20px;
+  color: #fff;
+  text-shadow: 3px 3px 0 #1a1a2e;
+}
+/* "팡" 터질 때 퍼지는 고리 */
+.photoRing {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  border: 12px solid #ffd84d;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* 잡은 손 (마지막에 둘이 손잡고 걸어갈 때 — 전용 도트가 없어 막대로 대신함) */
+.handLinkLayer { z-index: 6; visibility: visible; opacity: 1; }
+.handLink {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 88px;
+  height: 13px;
+  background: #f5c9a0;
+  border: 4px solid #0b0b14;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* ============================================================
+   HUD (하트 + TIME)
 /* ============================================================
    HUD (하트 + TIME)
    ============================================================ */

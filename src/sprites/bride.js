@@ -134,20 +134,36 @@ const SIDE_DRESS = R([
   [4, 'XXXXXXXXXXXXXXXX'],
 ]); // y=14 ~ 27 → 밑단 27행? (아래에서 30행까지 늘림)
 
-const SIDE_STAND = [
+// 드레스 밑단 모양 3가지 — 걸을 때 치맛자락이 살랑이는 느낌
+const HEM_A = R([[4, 'xxxxxxxXxxxxxxxx'], [4, 'xxxxxxxXxxxxxxxx'], [3, 'xxxxxxxxXxxxxxxxx'], [3, 'XXXXXXXXXXXXXXXXX']]);
+const HEM_B = R([[4, 'xxxxxxxXxxxxxxxx'], [3, 'xxxxxxxxXxxxxxxxx'], [3, 'xxxxxxxxXxxxxxxxx'], [4, 'XXXXXXXXXXXXXXXX']]);
+const HEM_C = R([[5, 'xxxxxxXxxxxxxxx'], [4, 'xxxxxxxXxxxxxxxx'], [4, 'xxxxxxxxXxxxxxxx'], [3, 'XXXXXXXXXXXXXXXXX']]);
+
+//  hem: 밑단 모양 / dy: 부케를 든 팔이 위아래로 살짝 (걷기 느낌)
+const sideBase = (hem, dy = 0) => [
   { rows: SIDE_VEIL, y: 6 },
   { rows: SIDE_HEAD, y: 1 },
   { rows: SIDE_DRESS.slice(0, -1), y: 14 },
-  { rows: R([[4, 'xxxxxxxXxxxxxxxx'], [4, 'xxxxxxxXxxxxxxxx'], [3, 'xxxxxxxxXxxxxxxxx'], [3, 'XXXXXXXXXXXXXXXXX']]), y: 27 },
+  { rows: hem, y: 27 },
   // 앞으로 부케를 든 팔
-  { line: [11, 15, 14, 18, 15, 19], w: 2, c: 'skin' },
-  { rect: [15, 18, 3, 3], c: 'bouquet' },
-  { px: [[16, 18]], c: 'bouquetHi' },
-  { rect: [16, 21, 1, 2], c: 'leaf' },
+  { line: [11, 15 + dy, 14, 18 + dy, 15, 19 + dy], w: 2, c: 'skin' },
+  { rect: [15, 18 + dy, 3, 3], c: 'bouquet' },
+  { px: [[16, 18 + dy]], c: 'bouquetHi' },
+  { rect: [16, 21 + dy, 1, 2], c: 'leaf' },
 ];
 
+const SIDE_STAND = sideBase(HEM_A);
+// 걷기 4프레임 (긴 드레스라 다리 대신 밑단과 팔로 표현)
+const SIDE_WALK = [sideBase(HEM_A, 0), sideBase(HEM_B, -1), sideBase(HEM_C, 0), sideBase(HEM_B, -1)];
+
 const FRONT_FRAMES = { frontStand_1: FRONT_STAND, wave_1: WAVE[0], wave_2: WAVE[1] };
-const SIDE_FRAMES = { sideStand_1: SIDE_STAND };
+const SIDE_FRAMES = {
+  sideStand_1: SIDE_STAND,
+  walk_1: SIDE_WALK[0],
+  walk_2: SIDE_WALK[1],
+  walk_3: SIDE_WALK[2],
+  walk_4: SIDE_WALK[3],
+};
 
 export const brideSprite = compileSprite({
   id: 'bride',

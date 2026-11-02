@@ -9,15 +9,17 @@ import { fillTokens } from '../engine/timing.js';
 import Heart from './Heart.jsx';
 import Hud from './Hud.jsx';
 
-/** 연도별 사진 액자. 파일이 없으면 "N YEAR" 글자 액자가 그대로 보입니다 */
-function PhotoFrame({ photo, P, innerRef }) {
+/** 연도별 사진 — 물음표상자를 치면 그 자리에서 동그랗게 떠오릅니다.
+ *  파일이 없으면 "N YEAR" 글자 동그라미가 그대로 보입니다 */
+function PhotoCircle({ photo, P, innerRef }) {
   return (
-    <div className="photoFrame" ref={innerRef} style={{ right: P.right, top: P.top, width: P.w, height: P.h }}>
-      <div className="photoInner">
-        <div className="photoFallback">{photo.year} YEAR</div>
-        <img src={P.dir + photo.src} alt="" onError={(e) => (e.currentTarget.style.display = 'none')} />
+    <div className="photoCircle" ref={innerRef} style={{ width: P.size, height: P.size }}>
+      <div className="photoFallback">
+        {photo.year}
+        <span>YEAR</span>
       </div>
-      <div className="photoCaption">{photo.year} YEAR</div>
+      <img src={P.dir + photo.src} alt="" style={{ objectPosition: P.objectPosition }} onError={(e) => (e.currentTarget.style.display = 'none')} />
+      <div className="photoYear">{photo.year} YEAR</div>
     </div>
   );
 }
@@ -55,11 +57,19 @@ export default function Scene({ refs, config }) {
         ))}
       </div>
 
-      {/* 연도별 사진 팝업 (화면 오른쪽 위) */}
+      {/* 연도별 사진 (상자를 친 자리에서 동그랗게 떠올랐다가 "팡") */}
       <div className="layer photoLayer">
         {P.list.map((photo, i) => (
-          <PhotoFrame key={photo.year} photo={photo} P={P} innerRef={(el) => (refs.photos[i] = el)} />
+          <PhotoCircle key={photo.year} photo={photo} P={P} innerRef={(el) => (refs.photos[i] = el)} />
         ))}
+        {P.list.map((photo, i) => (
+          <div key={`r${photo.year}`} className="photoRing" ref={(el) => (refs.photoRings[i] = el)} style={{ width: P.size, height: P.size }} />
+        ))}
+      </div>
+
+      {/* 잡은 손 (마지막에 둘이 손잡고 걸어갈 때) */}
+      <div className="layer handLinkLayer">
+        <div className="handLink" ref={(el) => (refs.handLink = el)} />
       </div>
 
       {/* 게임 구간 자막칸 (화면 아래 고정 — 상자/사진/HUD 와 안 겹침) */}

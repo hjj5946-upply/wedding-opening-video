@@ -14,6 +14,8 @@ import {
   allObstacles,
   stairsInfo,
   flagInfo,
+  turtleInfo,
+  photoTiming,
   gameEvents,
   heartsAt,
   timeText,
@@ -84,6 +86,7 @@ const pits = allPits(config);
 const words = allObstacles(config);
 const stairs = stairsInfo(config);
 const flag = flagInfo(config);
+const turtle = turtleInfo(config);
 const stopAt = mapStopAt(config);
 const headTop = config.layout.groundY - config.layout.charH - M.jump.height; // 점프 최고점에서 머리 끝 y
 
@@ -107,20 +110,74 @@ for (const p of pits) {
 }
 
 // 5-3) 글자 장애물
-if (words.length > 3) warns.push(`글자 장애물이 ${words.length}개예요 (시간 예산상 3개 이하 권장)`);
+if (words.length > 3) warns.push(`벽돌 장애물이 ${words.length}개예요 (시간 예산상 3개 이하 권장)`);
 for (const o of words) {
   if (o.hit) {
-    if (o.hitAt < G.start + 0.5) errors.push(`'${o.text}': 부딪히는 시각(${o.hitAt})이 게임 시작 직후예요`);
-    if (o.hitFx.blinkEnd > stopAt) errors.push(`'${o.text}': 충돌 연출 끝(${o.hitFx.blinkEnd.toFixed(2)})이 맵이 멈추는 시각을 넘어요`);
+    if (o.hitAt < G.start + 0.5) errors.push(`${o.label}: 부딪히는 시각(${o.hitAt})이 게임 시작 직후예요`);
+    if (o.hitFx.blinkEnd > stopAt) errors.push(`${o.label}: 충돌 연출 끝(${o.hitFx.blinkEnd.toFixed(2)})이 맵이 멈추는 시각을 넘어요`);
     if (M.hitFx.knockback > M.groomX - 120) errors.push(`hitFx.knockback(${M.hitFx.knockback}px)이 너무 커요 — 신랑이 화면 왼쪽으로 밀려 나갑니다`);
   } else {
     const need = (o.w + GROOM_HIT_W) / M.speed;
-    if (M.jump.air < need) errors.push(`'${o.text}': 체공 ${M.jump.air}초로는 못 넘어요 — 최소 ${need.toFixed(2)}초 필요`);
-    if (M.jump.height < o.h + 20) errors.push(`'${o.text}': 점프 높이 ${M.jump.height}px 가 장애물 높이 ${o.h}px 보다 낮아요`);
+    if (M.jump.air < need) errors.push(`${o.label}: 체공 ${M.jump.air}초로는 못 넘어요 — 최소 ${need.toFixed(2)}초 필요`);
+    if (M.jump.height < o.h + 20) errors.push(`${o.label}: 점프 높이 ${M.jump.height}px 가 장애물 높이 ${o.h}px 보다 낮아요`);
   }
+}
+
+// 5-3b) 거북이
+if (turtle) {
+  const need = (turtle.w + GROOM_HIT_W) / M.speed;
+  if (M.jump.air < need) errors.push(`거북이: 체공 ${M.jump.air}초로는 못 넘어요 — 최소 ${need.toFixed(2)}초 필요 (w 를 줄이세요)`);
+  if (M.jump.height < turtle.h + 20) errors.push(`거북이: 점프 높이 ${M.jump.height}px 가 거북이 높이 ${turtle.h}px 보다 낮아요`);
+  if (turtle.jump.land > stopAt) errors.push('거북이: 점프 착지가 맵이 멈추는 시각을 넘어요');
+  // 거북이가 "화면에 보이는 동안" 낭떠러지 위를 지나면 공중을 걷는 것처럼 보임
+  const v = turtle.speed ?? 0;
+  const rel = v + M.speed; // 화면에서 왼쪽으로 가는 속도
+  const tOn = G.start + (turtle.left - config.canvas.width) / rel; // 오른쪽에서 들어오는 시각
+  const tOff = G.start + (turtle.left + turtle.w) / rel; // 왼쪽으로 사라지는 시각
+  for (const p of pits) {
+    for (let t = Math.max(G.start, tOn); t <= Math.min(stopAt, tOff); t += 0.1) {
+      const x = turtle.left - v * (t - G.start);
+      if (x < p.left + p.w && x + turtle.w > p.left) {
+        warns.push(`거북이가 화면에 보이는 동안 낭떠러지(${p.id}) 위를 지나갑니다 (공중을 걷는 것처럼 보여요)`);
+        break;
+      }
+    }
+  }
+}
+
+// 5-3c) 사진 동그라미: 다음 상자가 오기 전에 "팡" 하고 사라져야 함 (같은 자리에 겹치지 않게)
+for (let i = 0; i < boxes.length; i++) {
+  const pt = photoTiming(config, boxes[i].apexAt);
+  if (i + 1 < boxes.length && pt.end > boxes[i + 1].apexAt) {
+    errors.push(`${boxes[i].year}년 사진이 ${boxes[i + 1].year}년 상자(${boxes[i + 1].apexAt}초)보다 늦게 사라져요 — photos.hold 를 ${(boxes[i + 1].apexAt - boxes[i].apexAt - 0.65).toFixed(2)} 이하로 줄이세요`);
+  }
+  if (pt.end > config.scenes.game.end) errors.push(`${boxes[i].year}년 사진이 game 장면 끝을 넘어요`);
 }
 const hitCount = words.filter((o) => o.hit).length;
 if (hitCount !== 2) warns.push(`부딪히는 장애물이 ${hitCount}개예요 (요청 기준은 2개 — 하트 3→1)`);
+
+// 5-3c2) 사진 동그라미가 HUD 하트나 신랑을 가리지 않는지
+{
+  const PH = config.photos;
+  const r = PH.size / 2;
+  const cy = M.boxY + M.boxSize / 2 - PH.riseY;
+  const H = config.hud.hearts;
+  const heartBottom = H.y + 14 * H.scale; // 하트 도트 높이 14칸
+  if (cy - r < heartBottom + 10) errors.push(`사진 동그라미 위쪽(y=${Math.round(cy - r)})이 HUD 하트(아래 y=${Math.round(heartBottom)})와 겹쳐요 — photos.riseY 를 줄이거나 size 를 줄이세요`);
+  const groomTop = config.layout.groundY - config.layout.charH;
+  if (cy + r > groomTop - 10) warns.push(`사진 동그라미 아래쪽(y=${Math.round(cy + r)})이 신랑 머리(y=${groomTop})와 가까워요`);
+  const GB = config.bubble.game;
+  if (cy + r > GB.y) errors.push('사진 동그라미가 게임 자막칸과 겹쳐요');
+}
+
+// 5-3d) STAGE 1 배너는 첫 상자를 치기 전에 사라져야 함
+{
+  const st1 = config.banners.find((b) => b.id === 'stage1');
+  if (st1) {
+    if (st1.at < G.start - 0.01) warns.push('STAGE 1 배너가 게임 시작보다 빨라요');
+    if (st1.at + st1.hold + 0.35 > boxes[0].apexAt) warns.push(`STAGE 1 배너가 1 YEAR 상자(${boxes[0].apexAt}초) 뒤까지 남아요 — hold 를 줄이세요`);
+  }
+}
 
 // 5-4) 모든 사건이 시간/위치에서 겹치지 않는지
 const ev = gameEvents(config);
@@ -164,7 +221,6 @@ if (timeText(config, stopAt - 0.1) !== `${boxes[boxes.length - 1].year} ${config
   if (E.walkFrom < flag.slideEnd) errors.push(`meet.walkFrom(${E.walkFrom})이 깃발에서 내려오기 전(${flag.slideEnd.toFixed(2)})이에요`);
   if (E.walkEnd <= E.walkFrom) errors.push('meet.walkEnd 는 walkFrom 보다 뒤여야 합니다');
   if (E.waveAt < E.walkEnd) errors.push(`meet.waveAt(${E.waveAt})이 만나기 전이에요`);
-  if (E.flashAt + E.flashDur > S.end) errors.push('meet 번쩍임이 meet 장면 끝을 넘어요');
   const meetX = E.brideScreenX - E.gap;
   const fromX = flag.screenX - 56;
   if (meetX <= fromX) errors.push(`meet: 신랑이 설 자리(${meetX})가 깃대 자리(${fromX})보다 왼쪽이에요`);
@@ -175,8 +231,17 @@ if (timeText(config, stopAt - 0.1) !== `${boxes[boxes.length - 1].year} ${config
     const lastHeal = heals[heals.length - 1].at + 0.4;
     if (lastHeal > E.waveAt) warns.push(`하트가 다 채워지는 시각(${lastHeal.toFixed(2)})이 인사 시작(${E.waveAt})보다 늦어요`);
   }
-  const clear = config.banners.find((b) => b.id === 'clear');
-  if (clear && (clear.at < S.start || clear.at > S.end)) warns.push(`배너 clear(${clear.at}초)가 meet 장면(${S.start}~${S.end}) 밖이에요`);
+  const st2 = config.banners.find((b) => b.id === 'stage2');
+  if (st2) {
+    if (Math.abs(st2.at - E.strollAt) > 0.5) warns.push(`STAGE 2 배너(${st2.at}초)가 손잡고 걷기 시작(${E.strollAt}초)과 어긋나요`);
+    if (st2.at + st2.hold > S.end) warns.push('STAGE 2 배너가 meet 장면 끝을 넘어요');
+  }
+  // 손잡고 걷기
+  if (E.strollAt < E.bowAt + E.bowDur * 2) errors.push(`meet.strollAt(${E.strollAt})이 인사가 끝나기 전이에요`);
+  if (E.strollEnd > S.end) errors.push(`meet.strollEnd(${E.strollEnd})가 meet 장면 끝(${S.end})을 넘어요`);
+  const strollSpeed = E.strollDist / (E.strollEnd - E.strollAt);
+  if (strollSpeed > 220) warns.push(`손잡고 걷는 속도가 ${strollSpeed.toFixed(0)}px/초 — "쫄쫄" 치고는 빨라요`);
+  if (E.brideScreenX + E.strollDist > config.canvas.width + 120) warns.push('손잡고 걷다가 신부가 화면 오른쪽으로 많이 나갑니다 (meet.strollDist 를 줄이세요)');
 }
 
 // 7) 검정 페이드 + 마무리 감사 인사

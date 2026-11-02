@@ -13,3 +13,8 @@ recordings/
 # 음원도 저작권/용량 때문에 깃에 올리지 않음 (필요하면 직접 예외 처리)
 public/assets/audio/*
 !public/assets/audio/.gitkeep
+
+# 원본 사진(수십 MB)은 깃에 올리지 않음 — 리사이즈본(public/assets/photos/yearN.jpg)만 올림
+public/assets/images/*year.jpg
+public/assets/images/*year.JPG
+public/assets/images/*year.jpeg

@@ -69,15 +69,66 @@ function tone({ freq = 520, freq2 = null, duration = 0.06, volume = 0.1, type = 
 
 let lastBlipAt = -1;
 
-/** 말풍선 비프음(동물의 숲 느낌). 글자마다 호출되므로 최소 간격/동시 개수를 제한합니다 */
-export function blip({ base = 460, detune = 0.06, duration = 0.045, volume = 0.085, minGap = 0.035, maxVoices = 6 } = {}) {
+/**
+ * 말풍선 말소리 (동물의 숲 느낌).
+ *  단순 비프음이 아니라 "모음"처럼 들리게:
+ *   ① 부드러운 파형(기본 triangle) + 살짝 디튠된 두 번째 음 → 목소리 두께
+ *   ② 소리 중에 음높이가 쓱 내려감(glide) → 말하는 억양
+ *   ③ 밴드패스 필터(포먼트)를 글자마다 다른 주파수로 → "아/에/이" 처럼 입 모양이 바뀜
+ */
+export function blip(o = {}) {
   if (!ctx || mute.sfx) return;
   const now = ctx.currentTime;
+  const minGap = o.minGap ?? 0.03;
+  const maxVoices = o.maxVoices ?? 8;
   if (now - lastBlipAt < minGap) return; // 너무 빨리 겹치면 건너뜀
   if (voices >= maxVoices) return;
   lastBlipAt = now;
-  const f = base * (1 + (Math.random() * 2 - 1) * detune);
-  tone({ freq: f, freq2: f * 0.88, duration, volume, type: 'square' });
+
+  const dur = o.duration ?? 0.09;
+  const vol = o.volume ?? 0.1;
+  const detune = o.detune ?? 0.07;
+  const f0 = (o.base ?? 400) * (1 + (Math.random() * 2 - 1) * detune);
+  const f1 = Math.max(60, f0 * (o.glide ?? 0.74));
+  const formant = Math.max(300, (o.formant ?? 1150) + (Math.random() * 2 - 1) * (o.formantRange ?? 520));
+
+  // 입 모양(포먼트) 필터 → 출력
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.setValueAtTime(formant, now);
+  filter.frequency.exponentialRampToValueAtTime(Math.max(300, formant * 0.78), now + dur);
+  filter.Q.value = o.formantQ ?? 7;
+
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), now + 0.012);
+  gain.gain.setValueAtTime(Math.max(0.0002, vol), now + dur * 0.55);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+  filter.connect(gain).connect(sfxGain);
+
+  // 기본음 + 살짝 디튠된 두 번째 음 (목소리 두께)
+  const oscs = [];
+  for (const [type, mul, lv] of [[o.type ?? 'triangle', 1, 1], ['sine', 1.005, 0.55]]) {
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f0 * mul, now);
+    osc.frequency.exponentialRampToValueAtTime(f1 * mul, now + dur);
+    if (lv < 1) {
+      const g2 = ctx.createGain();
+      g2.gain.value = lv;
+      osc.connect(g2).connect(filter);
+    } else {
+      osc.connect(filter);
+    }
+    oscs.push(osc);
+  }
+  voices++;
+  oscs[0].onended = () => voices--;
+  for (const osc of oscs) {
+    osc.start(now);
+    osc.stop(now + dur + 0.03);
+  }
 }
 
 /** 이름으로 고르는 효과음 (config.sfx 의 각 항목에서 볼륨/on·off) */
@@ -88,6 +139,7 @@ export function playSfx(name, sfxConfig = {}) {
   if (name === 'box') tone({ freq: 220, freq2: 110, duration: 0.09, volume: v, type: 'square' }); // 상자 '통'
   else if (name === 'pop') tone({ freq: 880, freq2: 1760, duration: 0.11, volume: v, type: 'triangle' }); // 하트 '뿅'
   else if (name === 'heal') tone({ freq: 660, freq2: 1320, duration: 0.22, volume: v, type: 'sine' }); // 하트 채움
+  else if (name === 'burst') tone({ freq: 520, freq2: 1500, duration: 0.14, volume: v, type: 'square' }); // 사진 "팡"
   else if (name === 'flag') tone({ freq: 1320, freq2: 330, duration: 0.5, volume: v, type: 'square' }); // 깃발
   else tone({ freq: 440, duration: 0.08, volume: v });
 }

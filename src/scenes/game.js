@@ -1,7 +1,9 @@
 // 34~67초: 게임 구간 — 맵이 오른쪽→왼쪽으로 흐르고, 신랑은 화면 x(map.groomX)에서 제자리 달리기
-//  · 물음표상자 8개(1~8년): 점프해서 머리로 치면 상자가 튀고 빈 상자로 바뀌며 하트가 뿅뿅 + 사진 팝업 + TIME 증가
+//  · 물음표상자 8개(1~8년): 점프해서 머리로 치면 상자가 튀고 빈 상자로 바뀌며
+//    하트가 뿅뿅 + 그 자리에서 동그란 사진이 떠올랐다가 "팡" 터짐 + TIME 증가
 //  · 낭떠러지: 점프로 건너뜀 (시각 지정이라 항상 성공)
-//  · 글자 장애물: hit:false 는 점프로 넘고, hit:true 는 부딪혀서 하트가 깎임
+//  · 벽돌 장애물: hit:false 는 점프로 넘고, hit:true 는 부딪혀서 하트가 깎임
+//  · 거북이 1마리: 왼쪽으로 기어오고 신랑이 점프로 넘음
 //  · 마지막: 계단을 오르고 → 맵이 멈추고 → 깃대로 뛰어 깃발을 내림
 //  모든 위치는 config 의 "시각"으로부터 engine/timing.js 가 계산합니다 (?t= 로 어디를 열어도 정확)
 import {
@@ -9,9 +11,11 @@ import {
   mapStopAt,
   jumpWindow,
   hitWindow,
+  photoTiming,
   allBoxes,
   allPits,
   allObstacles,
+  turtleInfo,
   stairsInfo,
   flagInfo,
 } from '../engine/timing.js';
@@ -39,13 +43,14 @@ export function addJump({ tl, refs, config, poses }, apexAt, kind = 'jump') {
   return j;
 }
 
-/** 물음표상자 1개: 점프해서 머리로 치기 → 상자 튀고 빈 상자로 → 하트 뿅뿅 → 사진 팝업 */
+/** 물음표상자 1개: 머리로 치기 → 상자 튀고 빈 상자로 → 하트 뿅뿅 → 그 자리에서 동그란 사진 → "팡" */
 function addBox(ctx, box, index) {
   const { tl, refs, config } = ctx;
   addJump(ctx, box.apexAt);
   const t0 = box.apexAt;
+  const M = config.map;
 
-  // 상자가 위로 톡 튀었다 내려옴 + 빈 상자(갈색)로 교체
+  // 1) 상자가 위로 톡 튀었다 내려옴 + 빈 상자(갈색)로 교체
   const el = refs.boxes[box.id];
   if (el) {
     tl.fromTo(el, { y: 0 }, { y: -18, duration: 0.09, ease: 'power2.out', immediateRender: false }, t0);
@@ -61,27 +66,46 @@ function addBox(ctx, box, index) {
   }
   sfxAt(ctx, t0, 'box');
 
-  // 상자 위로 하트가 뿅뿅 (화면 좌표. 3개를 돌려 씁니다 — 상자 간격보다 수명이 짧음)
-  const cx = config.map.groomX;
-  const cy = config.map.boxY - 10;
+  // 2) 상자 위로 하트가 뿅뿅 (화면 좌표. 3개를 돌려 씁니다)
+  const cx = M.groomX;
+  const cyBox = M.boxY + M.boxSize / 2;
   refs.boxHearts.forEach((h, i) => {
-    const dx = (i - 1) * 46;
+    const dx = (i - 1) * 54;
     const t = t0 + 0.05 + i * 0.05;
-    tl.fromTo(h, { x: cx, y: cy, xPercent: -50, yPercent: -50, autoAlpha: 0, scale: 0.4 }, { autoAlpha: 1, scale: 1, duration: 0.14, ease: 'back.out(2)', immediateRender: false }, t);
-    tl.to(h, { x: cx + dx, y: cy - 120 - i * 18, duration: 0.8, ease: 'power1.out' }, t);
+    tl.fromTo(h, { x: cx, y: cyBox - 30, xPercent: -50, yPercent: -50, autoAlpha: 0, scale: 0.4 }, { autoAlpha: 1, scale: 1, duration: 0.14, ease: 'back.out(2)', immediateRender: false }, t);
+    tl.to(h, { x: cx + dx, y: cyBox - 150 - i * 18, duration: 0.8, ease: 'power1.out' }, t);
     tl.to(h, { autoAlpha: 0, duration: 0.3, ease: 'power1.in' }, t + 0.5);
   });
   sfxAt(ctx, t0 + 0.06, 'pop');
 
-  // 그 해의 사진 팝업 (파일이 없으면 "N YEAR" 임시 액자)
-  const PH = config.photos;
+  // 3) 그 자리에서 동그란 사진이 떠오름 → 천천히 왼쪽으로 흘러감 → "팡" 터짐
+  const P = config.photos;
+  const pt = photoTiming(config, t0);
+  const yTop = cyBox - P.riseY;
+  const xEnd = cx - P.drift * P.hold;
   const frame = refs.photos[index];
   if (frame) {
-    const at = t0 + PH.delay;
-    tl.set(frame, { autoAlpha: 0, scale: 0.35 }, 0);
-    tl.fromTo(frame, { autoAlpha: 0, scale: 0.35 }, { autoAlpha: 1, scale: 1, duration: PH.popIn, ease: 'back.out(1.7)', immediateRender: false }, at);
-    tl.to(frame, { autoAlpha: 0, scale: 0.9, duration: PH.popOut, ease: 'power1.in' }, at + PH.popIn + PH.hold);
+    tl.set(frame, { xPercent: -50, yPercent: -50, x: cx, y: cyBox, scale: 0.2, autoAlpha: 0 }, 0);
+    tl.fromTo(
+      frame,
+      { x: cx, y: cyBox, scale: 0.2, autoAlpha: 0 },
+      { y: yTop, scale: 1, autoAlpha: 1, duration: P.popIn, ease: 'back.out(1.6)', immediateRender: false },
+      pt.start,
+    );
+    tl.to(frame, { x: xEnd, duration: P.hold, ease: 'none' }, pt.popEnd); // 떠 있는 동안 천천히 흘러감
+    tl.to(frame, { scale: 1.55, autoAlpha: 0, duration: P.burst, ease: 'power2.out' }, pt.burstAt); // 팡!
   }
+  const ring = refs.photoRings[index];
+  if (ring) {
+    tl.set(ring, { xPercent: -50, yPercent: -50, x: xEnd, y: yTop, scale: 0.55, autoAlpha: 0 }, 0);
+    tl.fromTo(
+      ring,
+      { scale: 0.55, autoAlpha: 0.95 },
+      { scale: 2.1, autoAlpha: 0, duration: P.burst * 1.3, ease: 'power2.out', immediateRender: false },
+      pt.burstAt,
+    );
+  }
+  sfxAt(ctx, pt.burstAt, 'burst');
 }
 
 /** 충돌 1번: 피격 포즈 + 뒤로 밀렸다 복귀 + 깜빡임 + 장애물이 앞으로 넘어지며 사라짐 */
@@ -118,13 +142,7 @@ function addStairsAndFlag(ctx) {
   const X = config.map.groomX;
 
   // 1) 계단: 한 칸씩 올라감 (steps 이징 = 칸 단위로 뚝뚝)
-  tl.fromTo(
-    refs.groomWrap,
-    { y: 0 },
-    { y: -st.topY, duration: st.climbDur, ease: `steps(${st.steps})`, immediateRender: false },
-    st.climbStart,
-  );
-  // 꼭대기에서 깃대로 뛸 때까지 그대로
+  tl.fromTo(refs.groomWrap, { y: 0 }, { y: -st.topY, duration: st.climbDur, ease: `steps(${st.steps})`, immediateRender: false }, st.climbStart);
   tl.set(refs.groomWrap, { y: -st.topY }, st.climbEnd);
 
   // 2) 깃대로 점프 (앞으로 + 살짝 위로)
@@ -163,7 +181,7 @@ export function buildGame(ctx) {
   tl.fromTo(refs.hills, { x: 0 }, { x: -dist * M.parallax.hills, duration: dur, ease: 'none', immediateRender: false }, G.start);
   tl.fromTo(refs.clouds, { x: 0 }, { x: -dist * M.parallax.clouds, duration: dur, ease: 'none', immediateRender: false }, G.start);
 
-  // 글자 장애물: 처음 상태(안 넘어짐, 보임) — 되감기에도 되살아나게 0초에 고정
+  // 벽돌 장애물: 처음 상태(안 넘어짐, 보임) — 되감기에도 되살아나게 0초에 고정
   for (const o of M.obstacles ?? []) {
     const el = refs.obstacles[o.id];
     if (el) tl.set(el, { rotate: 0, autoAlpha: 1, transformOrigin: '100% 100%' }, 0);
@@ -174,12 +192,22 @@ export function buildGame(ctx) {
   tl.set(refs.groomBob, { opacity: 1 }, 0);
   tl.set(refs.groomWrap, { x: M.groomX }, G.start - 0.01);
 
-  // 물음표상자 / 낭떠러지 / 글자 장애물
+  // 물음표상자 / 낭떠러지 / 벽돌 장애물
   allBoxes(config).forEach((b, i) => addBox(ctx, b, i));
   for (const p of allPits(config)) addJump(ctx, p.apexAt, 'pit');
   for (const o of allObstacles(config)) {
     if (o.hit) addHit(ctx, o);
     else addJump(ctx, o.apexAt);
+  }
+
+  // 거북이 1마리: 맵보다 조금 더 빨리 왼쪽으로 기어옴 → 신랑이 점프로 넘음
+  const tt = turtleInfo(config);
+  if (tt) {
+    addJump(ctx, tt.apexAt);
+    if (refs.turtle) {
+      tl.set(refs.turtle, { x: 0 }, 0);
+      tl.fromTo(refs.turtle, { x: 0 }, { x: -tt.driftTotal, duration: tt.driftDur, ease: 'none', immediateRender: false }, G.start);
+    }
   }
 
   // 계단 + 깃발

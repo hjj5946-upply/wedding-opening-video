@@ -32,6 +32,7 @@ export default function App() {
     boxUsed: {},
     boxHearts: [],
     photos: [],
+    photoRings: [],
   }).current;
   const flags = useRef({ silent: false }).current;
   const api = useRef({ tl: null, update: null, started: false, pausedByUser: false, debug: false, music: null }).current;
