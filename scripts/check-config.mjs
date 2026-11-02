@@ -43,9 +43,11 @@ for (let i = 0; i < order.length; i++) {
 const total = totalDuration(config);
 const mm = Math.floor(total / 60);
 const ss = (total % 60).toFixed(1);
+//  예식장 규정은 2분(120초) 이내. 어른들도 읽을 수 있게 천천히 가느라 115초대까지 늘렸으므로
+//  118초를 넘으면 경고(녹화 여유가 거의 없음), 120초부터는 규정 위반
 if (total >= 120) errors.push(`총 길이 ${total}초 — 예식장 규정(2분 이내) 초과!`);
-else if (total > 110) warns.push(`총 길이 ${total}초 — 목표 상한(110초)을 넘었어요`);
-else if (total < 90) warns.push(`총 길이 ${total}초 — 목표(100초 안팎)보다 짧아요`);
+else if (total > 118) warns.push(`총 길이 ${total}초 — 규정(120초)까지 ${(120 - total).toFixed(1)}초뿐이에요`);
+else if (total < 90) warns.push(`총 길이 ${total}초 — 너무 짧아요`);
 
 // 3) 멘트: 장면 안에 들어오는지 / 겹치지 않는지 / 말풍선에 들어가는지
 const rows = [];
@@ -294,7 +296,7 @@ if (screenText.includes('{date}') && /00/.test(config.couple.date)) warns.push('
 
 // ── 출력 ──
 console.log('\n=== 결혼식 오프닝 영상 설정 검사 ===\n');
-console.log(`총 길이: ${total}초 (${mm}분 ${ss}초)   규정: 2분 이내 / 목표 100초 안팎(상한 110초)\n`);
+console.log(`총 길이: ${total}초 (${mm}분 ${ss}초)   규정: 2분 이내 (지금은 천천히 읽히도록 115초대)\n`);
 console.log('장면');
 for (const name of order) {
   const s = config.scenes[name];
