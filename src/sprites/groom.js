@@ -213,6 +213,47 @@ const ARM_L_DOWN = fArm([4, 13, 4, 19], [4, 21, 2, 2]);
 const ARM_R_DOWN = fArm([18, 13, 18, 19], [18, 21, 2, 2]);
 
 const FRONT_STAND = front([...ARM_L_DOWN, ...ARM_R_DOWN]);
+
+// 꾸벅 인사: 고개를 숙이면 정수리가 보이고 얼굴이 어깨 쪽으로 내려감
+//  (몸/다리는 그대로 두고 "머리만" 아래로 내린 뒤 머리를 몸 위에 덧칠 → 고개를 숙인 모양)
+const BOW_HEAD_1 = R([
+  [9, 'hhhhhh'],
+  [7, 'hhhhHHhhhh'],
+  [6, 'hhhhhHhhhhhh'],
+  [5, 'hhhhhhHhhhhhhh'],
+  [5, 'hhhhhhHhhhhhhh'],
+  [5, 'hhhhhhHhhhhhhh'], // 정수리가 더 보임
+  [5, 'hhsssssshhhhhh'],
+  [5, 'hssssssssssssh'],
+  [5, 'hsseesssseessh'], // 감은 눈
+  [6, 'sssssmmsssss'],
+  [7, 'ssssssssss'],
+]);
+const BOW_HEAD_2 = R([
+  [9, 'hhhhhh'],
+  [7, 'hhhhHHhhhh'],
+  [6, 'hhhhhHhhhhhh'],
+  [5, 'hhhhhhHhhhhhhh'],
+  [5, 'hhhhhhHhhhhhhh'],
+  [5, 'hhhhhhHhhhhhhh'],
+  [5, 'hhhhhhhhhhhhhh'],
+  [5, 'hhhhhhhhhhhhhh'], // 거의 정수리만
+  [5, 'hhhssssssshhhh'],
+  [5, 'hsseesssseessh'], // 감은 눈
+  [6, 'ssssssssssss'],
+]);
+// 숙일 때 팔은 몸 앞으로 살짝 모음
+const ARM_L_BOW = fArm([5, 14, 6, 19], [6, 21, 2, 2]);
+const ARM_R_BOW = fArm([17, 14, 16, 19], [16, 21, 2, 2]);
+//  몸 → 다리 → (내려간) 머리 → 팔 순서로 덧칠해야 고개가 어깨에 묻힘
+const bowFrame = (dy, headRows) => [
+  { rows: FRONT_BODY, y: 13 },
+  { rows: FRONT_LEGS, y: 23 },
+  { rows: headRows, y: 1 + dy },
+  ...ARM_L_BOW,
+  ...ARM_R_BOW,
+];
+const BOW = [bowFrame(3, BOW_HEAD_1), bowFrame(7, BOW_HEAD_2)];
 // 손 흔들기: 화면 오른쪽 팔을 들어 좌우로
 const WAVE = [
   front([...ARM_L_DOWN, ...fArm([18, 13, 20, 11, 20, 7], [20, 5, 2, 2])]),
@@ -237,6 +278,7 @@ const SIDE_FRAMES = {
 const FRONT_FRAMES = {
   frontStand_1: FRONT_STAND,
   wave_1: WAVE[0], wave_2: WAVE[1],
+  bow_1: BOW[0], bow_2: BOW[1],
   fall_1: FALL,
 };
 

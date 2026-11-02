@@ -237,7 +237,9 @@ if (timeText(config, stopAt - 0.1) !== `${boxes[boxes.length - 1].year} ${config
     if (st2.at + st2.hold > S.end) warns.push('STAGE 2 배너가 meet 장면 끝을 넘어요');
   }
   // 손잡고 걷기
-  if (E.strollAt < E.bowAt + E.bowDur * 2) errors.push(`meet.strollAt(${E.strollAt})이 인사가 끝나기 전이에요`);
+  const bowEnd = E.bowAt + E.bowDown + E.bowHold + E.bowUp + 0.1;
+  if (E.bowAt < E.waveAt) errors.push(`meet.bowAt(${E.bowAt})이 손 흔들기 시작(${E.waveAt})보다 빨라요`);
+  if (E.strollAt < bowEnd) errors.push(`meet.strollAt(${E.strollAt})이 꾸벅 인사가 끝나기(${bowEnd.toFixed(2)}) 전이에요`);
   if (E.strollEnd > S.end) errors.push(`meet.strollEnd(${E.strollEnd})가 meet 장면 끝(${S.end})을 넘어요`);
   const strollSpeed = E.strollDist / (E.strollEnd - E.strollAt);
   if (strollSpeed > 220) warns.push(`손잡고 걷는 속도가 ${strollSpeed.toFixed(0)}px/초 — "쫄쫄" 치고는 빨라요`);

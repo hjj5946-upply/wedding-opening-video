@@ -83,6 +83,47 @@ const WAVE = [
   front([...bArm([7, 15, 4, 13, 2, 9], [2, 7, 2, 2]), ...ARM_HOLD], BOUQUET_SIDE),
 ];
 
+// 꾸벅 인사: 고개를 숙이면 올림머리(정수리)가 보이고 얼굴이 어깨 쪽으로 내려감
+//  (드레스/베일은 그대로 두고 "머리만" 아래로 내린 뒤 드레스 위에 덧칠)
+const BOW_HEAD_1 = R([
+  [9, 'rrrrrr'],
+  [9, 'rRRrrr'],
+  [7, 'rrrrrrrrrr'],
+  [6, 'rrrrrrRRrrrr'],
+  [5, 'rrrrrrrrrrrrrr'],
+  [5, 'rrrrrrrrrrrrrr'], // 정수리가 더 보임
+  [5, 'rrrssssssssrrr'],
+  [5, 'rssssssssssssr'],
+  [5, 'rsseesssseessr'], // 감은 눈
+  [5, 'rscsssmmssscsr'],
+  [6, 'rssssssssssr'],
+]);
+const BOW_HEAD_2 = R([
+  [9, 'rrrrrr'],
+  [9, 'rRRrrr'],
+  [7, 'rrrrrrrrrr'],
+  [6, 'rrrrrrRRrrrr'],
+  [5, 'rrrrrrrrrrrrrr'],
+  [5, 'rrrrrrrrrrrrrr'],
+  [5, 'rrrrrrrrrrrrrr'], // 거의 정수리만
+  [5, 'rrrrssssssrrrr'],
+  [5, 'rsseesssseessr'], // 감은 눈
+  [5, 'rsssssssssssr'],
+  [6, 'ssssssssss'],
+]);
+const bowFrame = (dy, headRows) => [
+  { rows: VEIL, y: 4 + dy },
+  { rows: FRONT_DRESS, y: 14 },
+  { rows: headRows, y: 1 + dy },
+  // 숙일 때 팔은 부케를 모아 쥠
+  ...bArm([8, 16, 9, 20], [9, 21, 2, 2]),
+  ...bArm([14, 16, 13, 20], [13, 21, 2, 2]),
+  { rect: [10, 21, 4, 3], c: 'bouquet' },
+  { px: [[10, 21], [12, 22]], c: 'bouquetHi' },
+  { rect: [11, 24, 2, 2], c: 'leaf' },
+];
+const BOW = [bowFrame(3, BOW_HEAD_1), bowFrame(7, BOW_HEAD_2)];
+
 // ─────────────────────────────── 옆모습 (오른쪽을 봄) ───────────────────────────────
 const SIDE_VEIL = R([
   [5, 'vvvv'],
@@ -156,7 +197,7 @@ const SIDE_STAND = sideBase(HEM_A);
 // 걷기 4프레임 (긴 드레스라 다리 대신 밑단과 팔로 표현)
 const SIDE_WALK = [sideBase(HEM_A, 0), sideBase(HEM_B, -1), sideBase(HEM_C, 0), sideBase(HEM_B, -1)];
 
-const FRONT_FRAMES = { frontStand_1: FRONT_STAND, wave_1: WAVE[0], wave_2: WAVE[1] };
+const FRONT_FRAMES = { frontStand_1: FRONT_STAND, wave_1: WAVE[0], wave_2: WAVE[1], bow_1: BOW[0], bow_2: BOW[1] };
 const SIDE_FRAMES = {
   sideStand_1: SIDE_STAND,
   walk_1: SIDE_WALK[0],

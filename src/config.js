@@ -39,10 +39,10 @@ export const config = {
     greet: { start: 5.5, end: 23 }, // 왼쪽에 멈춰 앞모습, 손 흔들며 인사
     drop: { start: 23, end: 25 }, // 맵 등장 + 신랑 낙하/착지 + HUD
     piano: { start: 25, end: 34 }, // 그랜드 피아노 앞에서 멘트 2줄
-    game: { start: 34, end: 67 }, // STAGE 1 START → 상자 8개 · 낭떠러지 · 벽돌 · 거북이 · 계단+깃발
-    meet: { start: 67, end: 81 }, // 신부 만남 + 하트 회복 + 인사 → 손잡고 오른쪽으로(STAGE 2)
-    fade: { start: 81, end: 84 }, // 화면 전체가 검정으로
-    closing: { start: 84, end: 102 }, // 검은 화면에 감사 인사 → 완전한 검정
+    game: { start: 34, end: 70 }, // STAGE 1 START → 상자 8개 · 낭떠러지 · 벽돌 · 거북이 · 계단+깃발
+    meet: { start: 70, end: 84 }, // 신부 만남 + 하트 회복 + 인사 → 나란히 오른쪽으로(STAGE 2)
+    fade: { start: 84, end: 87 }, // 화면 전체가 검정으로
+    closing: { start: 87, end: 105 }, // 검은 화면에 감사 인사 → 완전한 검정
   },
 
   // ── 오프닝 (검정 배경에서 걸어 들어오기 + 인사) ─────────────────
@@ -81,27 +81,27 @@ export const config = {
     //  치면: 상자가 튀고 빈 상자로 + 하트 뿅뿅 + 그 자리에서 동그란 사진이 떠올랐다가 "팡"
     boxes: [
       { year: 1, apexAt: 35.7 },
-      { year: 2, apexAt: 37.6 },
-      { year: 3, apexAt: 41.4 },
-      { year: 4, apexAt: 45.2 },
-      { year: 5, apexAt: 52.9 },
-      { year: 6, apexAt: 56.9 },
-      { year: 7, apexAt: 58.8 },
-      { year: 8, apexAt: 60.7 },
+      { year: 2, apexAt: 38.0 },
+      { year: 3, apexAt: 42.5 },
+      { year: 4, apexAt: 46.5 },
+      { year: 5, apexAt: 54.0 },
+      { year: 6, apexAt: 58.5 },
+      { year: 7, apexAt: 61.0 },
+      { year: 8, apexAt: 63.5 },
     ],
 
     // ── 낭떠러지 (땅이 끊긴 구간). apexAt = 건너뛰는 점프의 최고점 시각 ──
     //  시각으로 위치가 정해지므로 항상 정확히 건넙니다(떨어지지 않음). 하트도 안 닳음
     pits: [
-      { apexAt: 39.5, w: 230 },
-      { apexAt: 51.0, w: 260 },
+      { apexAt: 40.2, w: 230 },
+      { apexAt: 52.0, w: 260 },
     ],
 
     // ── 벽돌 장애물 (글자 없는 작은 벽돌 블록). hit: true 면 부딪혀서 하트가 깎임 ──
     obstacles: [
-      { id: 'b1', label: '벽돌1', hit: false, apexAt: 43.3, w: 130, h: 130 },
-      { id: 'b2', label: '벽돌2', hit: true, hitAt: 47.1, w: 150, h: 150 },
-      { id: 'b3', label: '벽돌3', hit: true, hitAt: 54.8, w: 150, h: 150 },
+      { id: 'b1', label: '벽돌1', hit: false, apexAt: 44.3, w: 130, h: 130 },
+      { id: 'b2', label: '벽돌2', hit: true, hitAt: 48.5, w: 150, h: 150 },
+      { id: 'b3', label: '벽돌3', hit: true, hitAt: 56.3, w: 150, h: 150 },
     ],
     // 부딪혔을 때 연출 (초 / px)
     hitFx: {
@@ -114,17 +114,17 @@ export const config = {
     },
 
     // ── 거북이 몬스터 1마리 (왼쪽으로 기어옴 → 신랑이 점프로 넘음) ──────
-    turtle: { apexAt: 49.1, w: 126, h: 90, speed: 60 }, // speed: 맵보다 더 빨리 다가오는 속도(px/초)
+    turtle: { apexAt: 50.6, w: 126, h: 90, speed: 60 }, // speed: 맵보다 더 빨리 다가오는 속도(px/초)
 
     // ── 계단 + 깃발 (게임 구간 마무리) ───────────────────────────
     //  atTime 에 첫 칸이 신랑 발밑에 오도록 위치가 자동 계산됩니다.
-    stairs: { atTime: 62.1, steps: 6, stepW: 90, stepH: 60 },
+    stairs: { atTime: 65.0, steps: 6, stepW: 90, stepH: 60 },
     flag: {
       screenX: 900, // 맵이 멈췄을 때 깃대가 서 있는 화면 x
       poleH: 520, // 깃대 높이(px)
       grabY: 280, // 신랑이 깃대를 잡는 높이 (바닥에서 px)
-      jumpAt: 64.0, // 계단 꼭대기에서 깃대로 뛰는 시각
-      touchAt: 64.5, // 깃대를 치는 시각 (= 깃발이 내려오기 시작 / 음악 페이드아웃)
+      jumpAt: 66.9, // 계단 꼭대기에서 깃대로 뛰는 시각
+      touchAt: 67.4, // 깃대를 치는 시각 (= 깃발이 내려오기 시작 / 음악 페이드아웃)
       slideDur: 1.2, // 깃발과 신랑이 미끄러져 내려오는 시간
     },
 
@@ -162,7 +162,7 @@ export const config = {
     objectPosition: 'center 38%', // 동그라미 안에서 사진의 어느 부분을 보여줄지 (세로 사진은 위쪽이 얼굴)
     delay: 0.05, // 상자를 친 뒤 몇 초 있다가 나오는지
     popIn: 0.26,
-    hold: 1.15, // 떠 있는 시간 (상자 간격보다 짧아야 함 — check 가 검사)
+    hold: 1.5, // 떠 있는 시간 (상자 간격보다 짧아야 함 — check 가 검사)
     burst: 0.3, // "팡" 터지는 시간
     list: [
       { year: 1, src: 'year1.jpg' },
@@ -252,11 +252,11 @@ export const config = {
     cues: [
       { id: 'walkIn', track: 'walk', start: 1.0, stop: 5.5, fadeIn: 0.2, fadeOut: 0.35 },
       { id: 'greet', track: 'intro', start: 5.6, stop: 33.6, fadeIn: 0.8, fadeOut: 0.6 },
-      { id: 'game', track: 'game', start: 34.0, stop: 66.0, fadeIn: 0.25, fadeOut: 1.5 },
+      { id: 'game', track: 'game', start: 34.0, stop: 69.0, fadeIn: 0.25, fadeOut: 1.5 },
       // 깃발을 내린 뒤 신부에게 걸어가는 동안만 발소리처럼 살짝
-      { id: 'walkMeet', track: 'walk', start: 67.2, stop: 69.6, fadeIn: 0.15, fadeOut: 0.3, volume: 0.32 },
+      { id: 'walkMeet', track: 'walk', start: 70.2, stop: 72.6, fadeIn: 0.15, fadeOut: 0.3, volume: 0.32 },
       // 신부를 만나는 순간부터 끝까지
-      { id: 'outro', track: 'outro', start: 69.6, stop: 102.0, fadeIn: 1.0, fadeOut: 2.5 },
+      { id: 'outro', track: 'outro', start: 72.6, stop: 105.0, fadeIn: 1.0, fadeOut: 2.5 },
     ],
   },
 
@@ -272,11 +272,12 @@ export const config = {
     { id: 4, scene: 'piano', layout: 'above', at: 25.3, hold: 1.4, text: '첫 직장에 취직하고, 퇴근 후 취미로 피아노 학원에 등록했어요.' },
     { id: 5, scene: 'piano', layout: 'above', at: 29.7, cps: 15, hold: 1.6, text: '그런데 거기서... 아주 아름다운 선생님을 만났습니다.' },
     // 게임 구간 (화면 아래 자막칸, 최대 2줄)
-    { id: 6, scene: 'game', layout: 'game', at: 35.3, cps: 16, hold: 1.3, text: '저는 피아노에만 집중하려고 했어요. 진짜예요. (진짜임)' },
-    { id: 7, scene: 'game', layout: 'game', at: 39.2, cps: 16, hold: 1.3, text: '근데 쳐야 할 피아노는 안 치고... 선생님께 작업만 쳤습니다.' },
-    { id: 8, scene: 'game', layout: 'game', at: 43.3, cps: 16, hold: 1.5, text: '그리고 결국 선생님이 저에게 넘어왔습니다. 아니, 제가 넘어간...? 예... 뭐, 그렇습니다.' },
-    { id: 9, scene: 'game', layout: 'game', at: 48.8, cps: 16, hold: 1.4, text: '아무튼 8년 6개월의 연애를 마치고, 이제 다음 챕터로 넘어가 보려 합니다.' },
-    { id: 10, scene: 'game', layout: 'game', at: 53.5, cps: 16, hold: 1.6, text: '앞으로의 길도 함께 잘 걸어갈 수 있다는 걸, 오늘 증명해 보이겠습니다.' },
+    //  어른들도 읽을 수 있게 천천히(cps 12) + 다 나온 뒤 2초 넘게 유지
+    { id: 6, scene: 'game', layout: 'game', at: 35.5, cps: 12, hold: 2.2, text: '저는 피아노에만 집중하려고 했어요. 진짜예요. (진짜임)' },
+    { id: 7, scene: 'game', layout: 'game', at: 41.2, cps: 12, hold: 2.2, text: '근데 쳐야 할 피아노는 안 치고... 선생님께 작업만 쳤습니다.' },
+    { id: 8, scene: 'game', layout: 'game', at: 47.2, cps: 12, hold: 2.4, text: '그리고 결국 선생님이 저에게 넘어왔습니다. 아니, 제가 넘어간...? 예... 뭐, 그렇습니다.' },
+    { id: 9, scene: 'game', layout: 'game', at: 55.0, cps: 12, hold: 2.3, text: '아무튼 8년 6개월의 연애를 마치고, 이제 다음 챕터로 넘어가 보려 합니다.' },
+    { id: 10, scene: 'game', layout: 'game', at: 61.7, cps: 12, hold: 2.4, text: '앞으로의 길도 함께 잘 걸어갈 수 있다는 걸, 오늘 증명해 보이겠습니다.' },
   ],
 
   // ── 큰 글자 배너 ────────────────────────────────────────────
@@ -284,7 +285,7 @@ export const config = {
     // 게임 시작 (1 YEAR 상자를 치기 직전에 사라짐)
     { id: 'stage1', text: 'STAGE 1 START', sub: '우리가 만난 이야기', at: 34.0, hold: 1.2 },
     // 둘이 손잡고 오른쪽으로 걸어가기 시작할 때
-    { id: 'stage2', text: 'STAGE 2 START', sub: '이제부터는 둘이서', at: 74.8, hold: 3.4 },
+    { id: 'stage2', text: 'STAGE 2 START', sub: '이제부터는 둘이서', at: 77.8, hold: 3.4 },
   ],
 
   // ── 신부 만남 (meet 장면) ────────────────────────────────────
@@ -293,21 +294,24 @@ export const config = {
   meet: {
     brideScreenX: 1360, // 맵이 멈췄을 때 신부가 서 있는 화면 x(중심)
     gap: 180, // 만났을 때 두 사람 중심 사이 거리(px)
-    walkFrom: 67.2, // 신랑이 걷기 시작 (이때만 walk 소리)
-    walkEnd: 69.6, // 신부 앞에 도착 — 이 순간부터 outro.mp3
-    heartsAt: 69.8, // 두 사람 사이에서 하트가 터져 나옴
+    walkFrom: 70.2, // 신랑이 걷기 시작 (이때만 walk 소리)
+    walkEnd: 72.6, // 신부 앞에 도착 — 이 순간부터 outro.mp3
+    heartsAt: 72.8, // 두 사람 사이에서 하트가 터져 나옴
     heartCount: 12,
     heartStagger: 0.09,
     heartRise: 1.5,
     heartY: 280, // 하트가 시작하는 높이 (바닥선에서 위로 px)
-    healAt: 70.6, // HUD 하트가 하나씩 다시 채워지기 시작
+    healAt: 73.6, // HUD 하트가 하나씩 다시 채워지기 시작
     healGap: 0.65,
-    waveAt: 72.4, // 둘 다 앞모습으로 돌아 인사
-    bowAt: 72.9, // 꾸벅 인사 모션
-    bowDur: 0.55,
-    // 손잡고 오른쪽으로 쫄쫄 걸어가기 (STAGE 2 배너와 같은 시각)
-    strollAt: 74.8,
-    strollEnd: 80.2,
+    waveAt: 75.4, // 둘 다 앞모습으로 돌아 손 흔들기
+    // 꾸벅 인사 (전용 도트 프레임 bow_1 / bow_2 사용)
+    bowAt: 76.0, // 고개를 숙이기 시작
+    bowDown: 0.32, // 숙이는 데 걸리는 시간
+    bowHold: 0.55, // 숙인 채로 머무는 시간
+    bowUp: 0.3, // 고개를 드는 시간
+    // 나란히 오른쪽으로 쫄쫄 걸어가기 (STAGE 2 배너와 같은 시각)
+    strollAt: 77.8,
+    strollEnd: 83.2,
     strollDist: 430, // 둘이 오른쪽으로 이동하는 거리(px)
   },
 
@@ -321,10 +325,10 @@ export const config = {
     size: 54,
     color: '#ffffff',
     lines: [
-      { at: 84.8, out: 88.2, text: '귀한 걸음으로 함께해 주셔서 진심으로 감사드립니다.' },
-      { at: 88.8, out: 92.2, text: '이제 저희 두 사람, 새로운 길의 첫걸음을 내딛습니다.' },
-      { at: 92.8, out: 96.2, text: '오늘 이 자리에서 저희의 앞날을 함께 축복해 주세요.' },
-      { at: 96.8, out: 100.2, text: '신랑 {groom} · 신부 {bride}', size: 88, color: '#ffd84d' },
+      { at: 87.8, out: 91.2, text: '귀한 걸음으로 함께해 주셔서 진심으로 감사드립니다.' },
+      { at: 91.8, out: 95.2, text: '이제 저희 두 사람, 새로운 길의 첫걸음을 내딛습니다.' },
+      { at: 95.8, out: 99.2, text: '오늘 이 자리에서 저희의 앞날을 함께 축복해 주세요.' },
+      { at: 99.8, out: 103.2, text: '신랑 {groom} · 신부 {bride}', size: 88, color: '#ffd84d' },
     ],
   },
 

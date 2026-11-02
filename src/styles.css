@@ -320,20 +320,6 @@ body {
   opacity: 0;
 }
 
-/* 잡은 손 (마지막에 둘이 손잡고 걸어갈 때 — 전용 도트가 없어 막대로 대신함) */
-.handLinkLayer { z-index: 6; visibility: visible; opacity: 1; }
-.handLink {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 88px;
-  height: 13px;
-  background: #f5c9a0;
-  border: 4px solid #0b0b14;
-  visibility: hidden;
-  opacity: 0;
-}
-
 /* ============================================================
    HUD (하트 + TIME)
 /* ============================================================

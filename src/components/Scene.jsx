@@ -67,11 +67,6 @@ export default function Scene({ refs, config }) {
         ))}
       </div>
 
-      {/* 잡은 손 (마지막에 둘이 손잡고 걸어갈 때) */}
-      <div className="layer handLinkLayer">
-        <div className="handLink" ref={(el) => (refs.handLink = el)} />
-      </div>
-
       {/* 게임 구간 자막칸 (화면 아래 고정 — 상자/사진/HUD 와 안 겹침) */}
       <div className="layer gameBubbleLayer" style={{ left: GB.x, top: GB.y }}>
         <Bubble ref={(h) => (refs.gameBubble = h)} bubble={config.bubble} />

@@ -20,6 +20,8 @@ export const POSES = {
   // 앞모습
   frontStand: { view: 'front', frames: ['frontStand_1'] },
   wave: { view: 'front', frames: ['wave_1', 'wave_2'] },
+  bow1: { view: 'front', frames: ['bow_1'] }, // 꾸벅 — 살짝 숙임
+  bow2: { view: 'front', frames: ['bow_2'] }, // 꾸벅 — 깊이 숙임
   fall: { view: 'front', frames: ['fall_1'] },
 };
 
