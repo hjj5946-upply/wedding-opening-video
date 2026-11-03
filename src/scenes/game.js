@@ -32,14 +32,16 @@ function sfxAt({ tl, flags, config }, time, name) {
   );
 }
 
-/** 점프 1번: 떠오름 → 최고점(apexAt) → 착지 */
-export function addJump({ tl, refs, config, poses }, apexAt, kind = 'jump') {
+/** 점프 1번: 떠오름 → 최고점(apexAt) → 착지 (뛰는 순간 점프 소리) */
+export function addJump(ctx, apexAt, kind = 'jump') {
+  const { tl, refs, config, poses } = ctx;
   const j = jumpWindow(config, apexAt, kind);
   const height = kind === 'pit' ? config.map.pitJump.height : config.map.jump.height;
   const half = j.apex - j.takeoff;
   tl.fromTo(refs.groomWrap, { y: 0 }, { y: -height, duration: half, ease: 'power2.out', immediateRender: false }, j.takeoff);
   tl.fromTo(refs.groomWrap, { y: -height }, { y: 0, duration: half, ease: 'power2.in', immediateRender: false }, j.apex);
   poses.add('groom', j.takeoff, j.land, 'jump', 'right');
+  sfxAt(ctx, j.takeoff, 'jump');
   return j;
 }
 
@@ -131,7 +133,7 @@ export function addHit(ctx, o) {
     tl.fromTo(el, { rotate: 0 }, { rotate: 84, duration: F.topple, ease: 'power2.in', immediateRender: false }, h.start);
     tl.to(el, { autoAlpha: 0, duration: F.topple * 0.45, ease: 'power1.in' }, h.start + F.topple * 0.55);
   }
-  sfxAt(ctx, h.start, 'box');
+  sfxAt(ctx, h.start, 'hit'); // 부딪힘 — 코인 소리가 아니라 둔탁한 '퉁'
 }
 
 /** 계단 오르기 → 맵 정지 → 깃대로 점프 → 깃발 내리기 → 땅으로 */
@@ -153,6 +155,7 @@ function addStairsAndFlag(ctx) {
   tl.fromTo(refs.groomWrap, { y: -(fl.grabY + 70) }, { y: -fl.grabY, duration: jumpDur * 0.45, ease: 'power2.in', immediateRender: false }, fl.jumpAt + jumpDur * 0.55);
   poses.add('groom', st.climbStart, fl.touchAt, 'run', 'right');
   poses.add('groom', fl.jumpAt, fl.touchAt, 'jump', 'right');
+  sfxAt(ctx, fl.jumpAt, 'jump');
   sfxAt(ctx, fl.touchAt, 'flag');
 
   // 3) 깃발이 기둥을 따라 내려오고, 신랑도 같이 미끄러져 내려옴

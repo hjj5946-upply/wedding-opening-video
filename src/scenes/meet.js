@@ -1,6 +1,6 @@
-// 70~84초: 깃발을 내린 뒤 → 신랑이 신부에게 걸어가 만남(이 순간부터 outro.mp3)
+// 80~93초: 깃발을 내린 뒤 → 신랑이 신부에게 걸어가 만남(이 순간부터 outro.mp3)
 //            → 하트가 터지고 → HUD 하트 3개가 하나씩 다시 채워짐(scenes/hud.js)
-//            → 둘 다 앞모습으로 손 흔들기 → 꾸벅 인사(전용 도트 프레임)
+//            → 둘 다 앞모습으로 손 흔들기 (꾸벅 인사는 마지막 장면에서만 함)
 //            → 나란히 오른쪽으로 쫄쫄 걸어감 (이때 STAGE 2 배너)
 //  값은 config.meet. 신부는 맵 끝(깃발 근처)에 서 있다가 맵이 멈추면 화면 meet.brideScreenX 에 보입니다.
 import { flagInfo } from '../engine/timing.js';
@@ -15,13 +15,13 @@ export function buildMeet({ tl, refs, config, poses, flags }) {
 
   // 1) 신부: 달리는 동안 이미 신랑 쪽(왼쪽)을 바라보고 서 있다가, 만난 뒤 앞모습으로 인사
   poses.add('bride', config.scenes.game.start, E.waveAt, 'sideStand', 'left');
-  poses.add('bride', E.waveAt, E.bowAt, 'wave');
+  poses.add('bride', E.waveAt, E.waveEnd, 'wave');
 
   // 2) 신랑: 걸어가서(옆모습 오른쪽) → 마주 보고 서기 → 앞모습으로 인사
   tl.fromTo(refs.groomWrap, { x: fromX }, { x: meetX, duration: E.walkEnd - E.walkFrom, ease: 'none', immediateRender: false }, E.walkFrom);
   poses.add('groom', E.walkFrom, E.walkEnd, 'walk', 'right');
   poses.add('groom', E.walkEnd, E.waveAt, 'sideStand', 'right');
-  poses.add('groom', E.waveAt, E.bowAt, 'wave');
+  poses.add('groom', E.waveAt, E.waveEnd, 'wave');
 
   // 3) 만나는 순간 하트가 좌우로 퍼지며 떠오름
   const cx = (meetX + E.brideScreenX) / 2;
@@ -44,17 +44,8 @@ export function buildMeet({ tl, refs, config, poses, flags }) {
     E.heartsAt,
   );
 
-  // 4) 꾸벅 인사 — 전용 도트 프레임(bow_1 살짝 / bow_2 깊이)으로: 숙임 → 머무름 → 고개 듦
-  const bowMid = E.bowAt + E.bowDown;
-  const bowUp = bowMid + E.bowHold;
-  const bowEnd = bowUp + E.bowUp;
-  for (const who of ['groom', 'bride']) {
-    const off = who === 'bride' ? 0.1 : 0; // 신부가 아주 살짝 늦게 (같이 하면 로봇 같음)
-    poses.add(who, E.bowAt + off, bowMid + off, 'bow1');
-    poses.add(who, bowMid + off, bowUp + off, 'bow2');
-    poses.add(who, bowUp + off, bowEnd + off, 'bow1');
-    poses.add(who, bowEnd + off, E.strollAt, 'frontStand');
-  }
+  // 4) 손을 내리고 앞을 봄 (꾸벅 인사는 마지막 장면에서 한 번만)
+  for (const who of ['groom', 'bride']) poses.add(who, E.waveEnd, E.strollAt, 'frontStand');
 
   // 5) 나란히 오른쪽으로 쫄쫄 걸어감 (STAGE 2 배너와 같은 시각)
   const strollDur = E.strollEnd - E.strollAt;

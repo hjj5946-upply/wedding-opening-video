@@ -16,6 +16,18 @@ export const config = {
     date: '2026.00.00',
   },
 
+  // ── 시작 화면 (스페이스바/터치 전까지 보이는 안내) ──────────────
+  //  녹화 때는 이 화면이 사라진 뒤부터 영상이 시작됩니다. 문구는 여기서 바꾸세요.
+  startScreen: {
+    title: 'GAME START',
+    keyLabel: 'SPACE', // 키캡 안 글자 (PC)
+    keyHint: '스페이스바를 누르면 시작합니다',
+    touchLabel: 'TOUCH', // 터치 표시 안 글자 (휴대폰/태블릿)
+    touchHint: '화면을 터치하면 시작합니다',
+    loading: '소리 준비 중...', // mp3 디코딩이 끝나기 전 표시
+    rotateHint: '가로로 돌리면 더 크게 보여요', // 휴대폰 세로 화면일 때만
+  },
+
   // ── 캔버스(예식장 규격: 1920×1080 고정) ──────────────────────────
   canvas: { width: 1920, height: 1080 },
 
@@ -57,8 +69,7 @@ export const config = {
   drop: {
     leaveAt: 27.0, // 신랑이 위로 뛰어올라 화면 밖으로
     leaveDur: 0.45,
-    mapFadeAt: 27.15, // 맵이 나타나기 시작
-    mapFadeDur: 0.5,
+    //  배경(피아노 학원)이 나타나는 시각은 config.room.showAt
     fallStart: 27.8, // 화면 위에서 떨어지기 시작
     landAt: 28.5, // 착지 (= HUD 등장)
     bounce: 40, // 착지 후 튕기는 높이(px)
@@ -114,7 +125,10 @@ export const config = {
     },
 
     // ── 거북이 몬스터 1마리 (왼쪽으로 기어옴 → 신랑이 점프로 넘음) ──────
-    turtle: { apexAt: 60.3, w: 126, h: 90, speed: 60 }, // speed: 맵보다 더 빨리 다가오는 속도(px/초)
+    //  거북이 그림: public/assets/images/turtle.png (깜자가 넣은 도트 이미지, 여백 잘라서 사용)
+    //  w/h 는 그림 비율(634:990)에 맞춘 값 — 바꿀 땐 비율을 같이 맞추세요
+    //  flip: 그림이 오른쪽을 보고 있어서 좌우 반전 → 기어가는 방향(왼쪽)을 봄
+    turtle: { apexAt: 60.3, w: 81, h: 126, speed: 60, src: 'turtle.png', flip: true }, // speed: 맵보다 더 빨리 다가오는 속도(px/초)
 
     // ── 계단 + 깃발 (게임 구간 마무리) ───────────────────────────
     //  atTime 에 첫 칸이 신랑 발밑에 오도록 위치가 자동 계산됩니다.
@@ -144,6 +158,45 @@ export const config = {
 
   // ── 그랜드 피아노 (public/assets/images/grandPiano.png) ────────────
   //  건반이 왼쪽을 향한 그림이라, 신랑이 건반 앞에 서도록 x를 맞춰 둠
+  // ── 피아노 학원 (27~41초 배경) ────────────────────────────────
+  //  게임 맵(하늘·언덕·벽돌)과 HUD(하트/TIME)는 게임이 시작될 때(41초) 함께 나옵니다.
+  //  그 전까지는 이 실내 배경 위에서 낙하 → 피아노 앞 멘트가 진행됩니다.
+  room: {
+    showAt: 27.15, // 검정 → 학원 (신랑이 떨어지기 전)
+    fadeIn: 0.5,
+    hideAt: 40.65, // 학원 → 게임 맵으로 바뀌기 시작 (hideAt + fadeDur = game.start)
+    fadeDur: 0.35, // 짧게 — 두 배경이 겹쳐 보이는 시간을 줄임
+    wall: '#f3e3c6', // 윗벽
+    wainscot: '#e4c89f', // 허리 아래 벽
+    railY: 540, // 벽 띠(몰딩) 높이
+    rail: '#c8a06c',
+    floor: '#b07c45', // 마루
+    floorLine: '#96673a', // 마루 결(가로줄) 색
+    plank: 56, // 마루 결 간격(px)
+    baseboard: '#8a5d33', // 걸레받이
+    //  창문 1개 + 음표 액자 2개 (전부 납작한 색 — 무거운 효과 없음)
+    window: { x: 1360, y: 150, w: 380, h: 280, frame: '#8a5d33', glass: '#bfe6f7', sash: '#f6fbff' },
+    frames: [
+      { x: 150, y: 170, w: 150, h: 130 },
+      { x: 340, y: 170, w: 150, h: 130 },
+    ],
+    frameColor: '#8a5d33',
+    frameInner: '#fffaf0',
+    noteColor: '#2a2a3a',
+    //  벽에 거는 반 이름 팻말 (문구를 바꾸면 그대로 나옵니다)
+    sign: {
+      text: '쇼팽반',
+      x: 620,
+      y: 170,
+      w: 330,
+      h: 130,
+      size: 64, // 글자 크기(px)
+      frame: '#8a5d33', // 팻말 테두리
+      back: '#fff6e2', // 팻말 바탕
+      color: '#5a3a1e', // 글자색
+    },
+  },
+
   piano: {
     src: './assets/images/grandPiano.png',
     x: 246, // 그림 왼쪽 끝 (맵 좌표)
@@ -159,20 +212,23 @@ export const config = {
     size: 280, // 동그라미 지름(px)
     riseY: 10, // 상자 중심에서 위로 얼마나 떠오르는지(px) — HUD 하트/신랑과 안 겹치게 작게
     drift: 130, // 떠 있는 동안 왼쪽으로 흘러가는 속도(px/초) — 맵보다 느려서 오래 보임
-    objectPosition: 'center 38%', // 동그라미 안에서 사진의 어느 부분을 보여줄지 (세로 사진은 위쪽이 얼굴)
+    //  동그라미 안에서 사진의 어느 부분을 보여줄지. 사진마다 list 에서 따로 적을 수 있습니다(아래).
+    //  가로 % = 왼쪽(0%) ~ 오른쪽(100%) / 세로 % = 위(0%) ~ 아래(100%). 얼굴이 잘리면 이 값만 조절하세요.
+    objectPosition: 'center center', // 따로 안 적은 사진의 기본값
     delay: 0.05, // 상자를 친 뒤 몇 초 있다가 나오는지
     popIn: 0.26,
     hold: 1.8, // 떠 있는 시간 (상자 간격보다 짧아야 함 — check 가 검사)
     burst: 0.3, // "팡" 터지는 시간
+    //  objectPosition 은 "얼굴이 동그라미 가운데에 오도록" 사진마다 맞춰 둔 값입니다
     list: [
-      { year: 1, src: 'year1.jpg' },
-      { year: 2, src: 'year2.jpg' },
-      { year: 3, src: 'year3.jpg' },
-      { year: 4, src: 'year4.jpg' },
-      { year: 5, src: 'year5.jpg' },
-      { year: 6, src: 'year6.jpg' },
-      { year: 7, src: 'year7.jpg' },
-      { year: 8, src: 'year8.jpg' },
+      { year: 1, src: 'year1.jpg', objectPosition: 'center 70%' }, // 세로 · 얼굴이 아래쪽
+      { year: 2, src: 'year2.jpg', objectPosition: 'center 15%' }, // 세로 · 얼굴이 위쪽
+      { year: 3, src: 'year3.jpg', objectPosition: '92% center' }, // 가로 · 두 사람이 오른쪽
+      { year: 4, src: 'year4.jpg', objectPosition: 'center 100%' }, // 세로 · 전신, 하늘을 잘라냄
+      { year: 5, src: 'year5.jpg', objectPosition: 'center 100%' }, // 세로 · 전신, 하늘을 잘라냄
+      { year: 6, src: 'year6.jpg', objectPosition: 'center 18%' }, // 세로 · 얼굴이 위쪽
+      { year: 7, src: 'year7.jpg', objectPosition: 'center 33%' }, // 세로 · 얼굴이 가운데 위
+      { year: 8, src: 'year8.jpg', objectPosition: 'center 0%' }, // 세로(길쭉) · 얼굴이 맨 위
     ],
   },
 
@@ -220,13 +276,16 @@ export const config = {
     blipGlide: 0.74, // 소리 중에 음높이가 이 비율까지 내려감 (0.74 = 26% 하강)
     blipFormant: 1150, // 입 모양(포먼트) 주파수 — 사람 목소리처럼 들리게 하는 필터
     blipFormantRange: 520, // 글자마다 입 모양이 바뀌는 폭 (모음이 달라지는 느낌)
-    blipFormantQ: 7, // 필터 날카로움. 크면 더 "아/에/이" 같아짐
+    blipFormantQ: 5, // 필터 날카로움. 크면 더 "아/에/이" 같지만 소리가 작아짐
     blipDetune: 0.07, // 글자마다 음높이를 ±7% 흔들기
     pitch: { groom: 330, bride: 430 }, // 기본 음높이(Hz) — 낮을수록 굵은 목소리
     pitchRange: 0, // (옛 설정) 지금은 blipDetune 을 씀
-    volume: 0.1,
+    volume: 0.32, // 말소리 크기 (음악 0.34~0.42 과 비슷한 수준)
     maxVoices: 8, // 동시에 울리는 소리 개수 제한
-    box: { enabled: true, volume: 0.14 }, // 물음표상자를 칠 때 '통'
+    //  src 가 있으면 public/assets/audio/ 의 mp3를 재생하고, 없으면 코드로 합성합니다
+    box: { enabled: true, volume: 0.5, src: 'coin.mp3' }, // 물음표상자를 칠 때 — 코인 소리
+    jump: { enabled: true, volume: 0.4, src: 'jump.mp3' }, // 점프할 때 (상자·낭떠러지·장애물·거북이)
+    hit: { enabled: true, volume: 0.17 }, // 벽돌에 부딪힐 때 둔탁한 '퉁' (코드 합성)
     pop: { enabled: true, volume: 0.14 }, // 하트가 튀어나올 때 '뿅'
     burst: { enabled: true, volume: 0.13 }, // 사진이 "팡" 터질 때
     heal: { enabled: true, volume: 0.18 }, // HUD 하트가 채워질 때
@@ -243,10 +302,11 @@ export const config = {
     dir: './assets/audio/',
     //  volume: 0~1 / offset: 파일 안에서 몇 초부터 재생할지 / loop: 구간보다 짧으면 반복
     tracks: {
-      walk: { src: 'walk.mp3', volume: 0.5, offset: 0, loop: true }, // 22.6초
+      walk: { src: 'walk.mp3', volume: 0.7, offset: 0, loop: true }, // 22.6초 (발걸음 — 2026-11-03 0.5 → 0.7)
       intro: { src: 'intro.mp3', volume: 0.4, offset: 0, loop: false }, // 40.5초
       game: { src: 'inGame.mp3', volume: 0.34, offset: 0, loop: true }, // 125.2초
-      outro: { src: 'outro.mp3', volume: 0.42, offset: 0, loop: false }, // 42.5초
+      //  ▼ 마무리 곡 — src 만 바꾸면 바로 교체됩니다 ('outro.mp3' ↔ 'outro2.mp3')
+      outro: { src: 'outro.mp3', volume: 0.42, offset: 0, loop: false }, // 83.6~117초(33.4초) 사용
     },
     //  start/stop = 영상 시각(초). fadeOut 은 stop "이전"부터 서서히 줄어듭니다.
     cues: [
@@ -254,7 +314,7 @@ export const config = {
       { id: 'greet', track: 'intro', start: 5.6, stop: 40.6, fadeIn: 0.8, fadeOut: 0.6 },
       { id: 'game', track: 'game', start: 41.0, stop: 81.0, fadeIn: 0.25, fadeOut: 1.5 },
       // 깃발을 내린 뒤 신부에게 걸어가는 동안만 발소리처럼 살짝
-      { id: 'walkMeet', track: 'walk', start: 81.2, stop: 83.6, fadeIn: 0.15, fadeOut: 0.3, volume: 0.32 },
+      { id: 'walkMeet', track: 'walk', start: 80.85, stop: 83.6, fadeIn: 0.05, fadeOut: 0.3, volume: 0.52 },
       // 신부를 만나는 순간부터 끝까지
       { id: 'outro', track: 'outro', start: 83.6, stop: 117.0, fadeIn: 1.0, fadeOut: 2.5 },
     ],
@@ -270,14 +330,14 @@ export const config = {
     { id: 3, scene: 'greet', layout: 'side', at: 18.9, hold: 3.0, text: '예식 시작 전 간략하게 저희가 어떻게 오늘 이 자리까지 오게 되었는지 말씀 드리겠습니다.' },
     // 피아노 앞 (머리 위 말풍선)
     { id: 4, scene: 'piano', layout: 'above', at: 29.4, cps: 12, hold: 2.4, text: '첫 직장에 취직하고, 퇴근 후 취미로 피아노 학원에 등록했어요.' },
-    { id: 5, scene: 'piano', layout: 'above', at: 35.6, cps: 12, hold: 2.4, text: '그런데 거기서... 아주 아름다운 선생님을 만났습니다.' },
+    { id: 5, scene: 'piano', layout: 'above', at: 35.6, cps: 12, hold: 2.4, text: '그런데 거기서... 아주 예쁜 선생님을 만났습니다.' },
     // 게임 구간 (화면 아래 자막칸, 최대 2줄)
     //  어른들도 읽을 수 있게 아주 천천히(cps 10.5) + 다 나온 뒤 2.5초 넘게 유지
-    { id: 6, scene: 'game', layout: 'game', at: 42.4, cps: 10.5, hold: 2.5, text: '저는 피아노에만 집중하려고 했어요. 진짜예요. (진짜임)' },
-    { id: 7, scene: 'game', layout: 'game', at: 48.8, cps: 10.5, hold: 2.5, text: '근데 쳐야 할 피아노는 안 치고... 선생님께 작업만 쳤습니다.' },
-    { id: 8, scene: 'game', layout: 'game', at: 55.6, cps: 10.5, hold: 2.8, text: '그리고 결국 선생님이 저에게 넘어왔습니다. 아니, 제가 넘어간...? 예... 뭐, 그렇습니다.' },
-    { id: 9, scene: 'game', layout: 'game', at: 64.4, cps: 10.5, hold: 2.6, text: '아무튼 8년 6개월의 연애를 마치고, 이제 다음 챕터로 넘어가 보려 합니다.' },
-    { id: 10, scene: 'game', layout: 'game', at: 72.0, cps: 10.5, hold: 2.8, text: '앞으로의 길도 함께 잘 걸어갈 수 있다는 걸, 오늘 증명해 보이겠습니다.' },
+    { id: 6, scene: 'game', layout: 'game', at: 42.4, cps: 16, hold: 3.8, text: '저는 피아노에만 집중하려고 했어요. 진짜예요. (진짜임)' },
+    { id: 7, scene: 'game', layout: 'game', at: 48.8, cps: 16, hold: 3.9, text: '근데 쳐야 할 피아노는 안 치고... 선생님께 작업만 쳤습니다.' },
+    { id: 8, scene: 'game', layout: 'game', at: 55.6, cps: 16, hold: 4.8, text: '그리고 결국 선생님이 저에게 넘어왔습니다. 아니, 제가 넘어간...? 예... 뭐, 그렇습니다.' },
+    { id: 9, scene: 'game', layout: 'game', at: 64.4, cps: 16, hold: 4.2, text: '아무튼 8년 6개월의 연애를 마치고, 이제 다음 챕터로 넘어가 보려 합니다.' },
+    { id: 10, scene: 'game', layout: 'game', at: 72.0, cps: 16, hold: 4.4, text: '앞으로의 길도 함께 잘 걸어갈 수 있다는 걸, 오늘 증명해 보이겠습니다.' },
   ],
 
   // ── 큰 글자 배너 ────────────────────────────────────────────
@@ -294,7 +354,7 @@ export const config = {
   meet: {
     brideScreenX: 1360, // 맵이 멈췄을 때 신부가 서 있는 화면 x(중심)
     gap: 180, // 만났을 때 두 사람 중심 사이 거리(px)
-    walkFrom: 81.2, // 신랑이 걷기 시작 (이때만 walk 소리)
+    walkFrom: 80.9, // 신랑이 걷기 시작 (이때만 walk 소리 — 깃대에서 내려오자마자)
     walkEnd: 83.6, // 신부 앞에 도착 — 이 순간부터 outro.mp3
     heartsAt: 83.8, // 두 사람 사이에서 하트가 터져 나옴
     heartCount: 12,
@@ -303,12 +363,8 @@ export const config = {
     heartY: 280, // 하트가 시작하는 높이 (바닥선에서 위로 px)
     healAt: 84.6, // HUD 하트가 하나씩 다시 채워지기 시작
     healGap: 0.65,
-    waveAt: 86.2, // 둘 다 앞모습으로 돌아 손 흔들기
-    // 꾸벅 인사 (전용 도트 프레임 bow_1 / bow_2 사용)
-    bowAt: 86.8, // 고개를 숙이기 시작
-    bowDown: 0.35, // 숙이는 데 걸리는 시간
-    bowHold: 0.7, // 숙인 채로 머무는 시간
-    bowUp: 0.35, // 고개를 드는 시간
+    waveAt: 86.2, // 둘 다 앞모습으로 돌아 손 흔들기 (꾸벅 인사는 마지막 장면에서만 — 2026-11-03 결정)
+    waveEnd: 88.2, // 손 흔들기를 멈추고 앞을 봄
     // 나란히 오른쪽으로 쫄쫄 걸어가기 (STAGE 2 배너와 같은 시각)
     strollAt: 88.6,
     strollEnd: 92.8,
@@ -324,6 +380,28 @@ export const config = {
     fadeOut: 1.0, // 사라지는 시간
     size: 64, // 마무리 글자 크기 (뒷자리에서도 읽도록 크게)
     color: '#ffffff',
+    textCenterY: 400, // 글자가 모이는 세로 중심 (아래쪽은 두 사람 자리로 비워 둠)
+
+    // ── 마무리 장면: 검은 화면에 두 사람이 양쪽에서 걸어와 가운데서 인사 ────
+    //  배경은 넣지 않습니다(예식은 낮인데 밤하늘은 어울리지 않음 — 2026-11-03 결정). 순수 검정 위에 도트만.
+    stage: {
+      showAt: 95.6, // 두 사람 층이 켜지는 시각 (fade 장면이 끝나는 시각)
+      fadeIn: 0.6,
+      hideAt: 115.0, // 두 사람이 사라지기 시작 (마지막 0.5초는 완전한 검정)
+      fadeOut: 1.2,
+      scale: 8, // 두 사람 도트 배율 (마지막 장면이라 본편 7보다 조금 크게)
+      feetY: 810, // 두 사람 발 높이
+      gap: 24, // 가운데에서 멈췄을 때 두 사람 사이 간격(px)
+      //  신랑은 화면 왼쪽 바깥, 신부는 오른쪽 바깥에서 걸어 들어옵니다
+      walkFrom: 96.0, // 걷기 시작
+      walkEnd: 99.6, // 가운데 도착 → 앞을 보고 섬
+      walkOutside: 260, // 화면 바깥 몇 px 에서 출발하는지
+      breath: { amount: 7, period: 2.6 }, // 선 뒤로 숨 쉬듯 아주 살짝 위아래
+      bowAt: 112.8, // 마지막 줄에서 함께 꾸벅 인사
+      bow: { down: 0.5, hold: 1.0, up: 0.6 },
+      //  두 사람 사이에서 하트가 천천히 떠오름
+      hearts: { count: 3, at: 100.6, every: 5.2, rise: 150, dur: 3.6, scale: 5, y: 140, spread: 120 },
+    },
     //  at = 나타나는 시각 / out = 사라지기 시작하는 시각. 한 줄이 3초쯤 온전히 보입니다
     lines: [
       { at: 96.2, out: 100.2, text: '귀한 걸음으로 함께해 주셔서 진심으로 감사드립니다.' },
@@ -343,14 +421,14 @@ export const config = {
     blush: '#f0a0a0',
     // 신랑
     hair: '#3a3546',
-    hairHi: '#b4aed0',
+    hairHi: '#5f5878', // 머릿결/가르마 선 (너무 밝으면 흰머리처럼 보임)
     suit: '#3a4066',
     suitHi: '#7d88cc',
     suitShade: '#262a45',
     suitArm: '#4b5384',
     white: '#ffffff',
-    tie: '#e8344a',
-    tieDark: '#9a1c2c',
+    tie: '#2a2a3a', // 보타이 — 검정 (2026-11-03 변경, 이전 빨강)
+    tieDark: '#0c0c14', // 보타이 매듭 그림자
     shoe: '#2a2a38',
     shoeHi: '#8a8aa4',
     // 신부

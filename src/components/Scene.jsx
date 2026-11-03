@@ -1,5 +1,5 @@
 // 화면에 올라가는 모든 요소를 층(layer)으로 쌓아 둔 곳. 움직임은 전부 src/scenes/*.js 의 타임라인이 담당.
-//  z-index 순서(styles.css): 맵(scene2) < 신랑 < 하트·HUD·사진 < 게임 자막칸 < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자
+//  z-index 순서(styles.css): 맵(scene2) < 피아노 학원(room) < 신랑 < 하트·HUD·사진 < 게임 자막칸 < 배너 < 번쩍임 < 검정 페이드 < 마무리 배경 < 마무리 글자
 //  오프닝(0~23초)은 아무 배경 없이 순수 검정(.canvas 배경색)
 import Character from './Character.jsx';
 import World from './World.jsx';
@@ -8,6 +8,8 @@ import { groomSprite } from '../sprites/groom.js';
 import { fillTokens } from '../engine/timing.js';
 import Heart from './Heart.jsx';
 import Hud from './Hud.jsx';
+import ClosingStage from './ClosingStage.jsx';
+import PianoRoom from './PianoRoom.jsx';
 
 /** 연도별 사진 — 물음표상자를 치면 그 자리에서 동그랗게 떠오릅니다.
  *  파일이 없으면 "N YEAR" 글자 동그라미가 그대로 보입니다 */
@@ -18,7 +20,7 @@ function PhotoCircle({ photo, P, innerRef }) {
         {photo.year}
         <span>YEAR</span>
       </div>
-      <img src={P.dir + photo.src} alt="" style={{ objectPosition: P.objectPosition }} onError={(e) => (e.currentTarget.style.display = 'none')} />
+      <img src={P.dir + photo.src} alt="" style={{ objectPosition: photo.objectPosition ?? P.objectPosition }} onError={(e) => (e.currentTarget.style.display = 'none')} />
       <div className="photoYear">{photo.year} YEAR</div>
     </div>
   );
@@ -37,6 +39,9 @@ export default function Scene({ refs, config }) {
   return (
     <>
       <World refs={refs} config={config} charStyle={charStyle} charW={charW} />
+
+      {/* 피아노 학원 (27~41초) — 맵 위, 신랑 아래 */}
+      <PianoRoom refs={refs} config={config} />
 
       {/* 신랑 (화면 좌표 기준으로 움직임) */}
       <Character who="groom" sprite={groomSprite} palette={config.palette} scale={spriteScale} refs={refs} bubble={config.bubble} style={{ ...charStyle, left: 0 }} />
@@ -86,8 +91,12 @@ export default function Scene({ refs, config }) {
       {/* 검정 페이드 — 맵·캐릭터·HUD·배너를 전부 덮음 */}
       <div className="layer blackout" ref={(el) => (refs.blackout = el)} />
 
+      {/* 마무리 배경 (밤하늘 + 나란히 선 두 사람) — 검정 위, 글자 아래 */}
+      <ClosingStage refs={refs} config={config} />
+
       {/* 마무리 감사 인사 (한 줄씩 나타났다 사라짐) */}
-      <div className="layer closing">
+      {/* paddingBottom 으로 글자 뭉치를 위로 올림 → 아래쪽은 두 사람 자리 */}
+      <div className="layer closing" style={{ paddingBottom: Math.max(0, (config.canvas.height / 2 - C.textCenterY) * 2) }}>
         {C.lines.map((l, i) => (
           <div
             key={i}

@@ -84,35 +84,3 @@ export const bush = {
 
 /** 거북이 몬스터 (옆모습, 왼쪽을 보고 기어옴). 21×15칸 × cell 6 = 126×90px
  *  원작 게임의 캐릭터를 베끼지 않은 오리지널 도트입니다. 걷는 느낌을 위해 발 위치만 다른 2프레임 */
-const turtleColors = {
-  o: '#14401a', // 테두리
-  S: '#2e7d32', // 등딱지 진한 초록
-  s: '#7cc47f', // 등딱지 무늬
-  y: '#f3d14e', // 몸/머리
-  Y: '#cfa92e', // 배 그림자
-  e: '#1a1a2e', // 눈
-};
-const turtleBody = [
-  '.........ooooooo.....',
-  '......oooSSSSSSSooo..',
-  '....ooSSsSSsSSsSSSSo.',
-  '...oSSsSSsSSsSSsSSSSo',
-  '..oSSsSSsSSsSSsSSsSSo',
-  '.ooSsSSsSSsSSsSSsSSSo',
-  'oyyyoSSsSSsSSsSSsSSSo',
-  'oyeyyoSSsSSsSSsSSsSSo',
-  'oyyyyyoSSSSSSSSSSSSo.',
-  '.oyyyyyoooooooooooo..',
-  '..oyyyYYYYYYYYYYyo...',
-  '...oyyyyyyyyyyyyyo...',
-];
-export const turtleA = {
-  cell: 6,
-  colors: turtleColors,
-  rows: [...turtleBody, '...ooyyoo...ooyyoo...', '....oyyo.....oyyo....', '....oooo.....oooo....'],
-};
-export const turtleB = {
-  cell: 6,
-  colors: turtleColors,
-  rows: [...turtleBody, '...ooyyoo...ooyyoo...', '...oyyo......oyyo....', '...oooo......oooo....'],
-};

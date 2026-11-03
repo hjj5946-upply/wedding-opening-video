@@ -66,8 +66,9 @@ body {
   opacity: 0;
 }
 
-/* z-index: 맵(scene2) < 신랑 < 하트·HUD·사진 < 게임 자막칸 < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자 */
+/* z-index: 맵(scene2) < 피아노 학원(room) < 신랑 < 하트·HUD·사진 < 게임 자막칸 < 배너 < 번쩍임 < 검정 페이드 < 마무리 글자 */
 .scene2 { z-index: 3; }
+.room { z-index: 4; }
 .character.groom { z-index: 5; }
 .heartsLayer { z-index: 6; visibility: visible; opacity: 1; }
 .hud { z-index: 6; }
@@ -76,7 +77,8 @@ body {
 .banner { z-index: 8; }
 .flash { z-index: 9; background: #fff; }
 .blackout { z-index: 10; background: #000; }
-.closing { z-index: 11; visibility: visible; opacity: 1; display: grid; place-items: center; }
+.closingStage { z-index: 11; }
+.closing { z-index: 12; visibility: visible; opacity: 1; display: grid; place-items: center; }
 
 /* ============================================================
    캐릭터 / 말풍선
@@ -225,21 +227,97 @@ body {
 .flagBase { position: absolute; width: 74px; height: 64px; background: #c9a06a; border: 4px solid #6b4526; box-shadow: inset -7px -7px 0 rgba(107, 69, 38, 0.35); }
 
 /* 시작 안내 (음악 준비가 끝나면 표시 → 스페이스를 누르면 사라짐. 녹화에는 안 찍힘) */
-.startHint {
-  position: absolute;
-  left: 50%;
-  bottom: 110px;
-  transform: translateX(-50%);
-  z-index: 20;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 34px;
-  color: #ffffff;
-  text-shadow: 4px 4px 0 #1a1a2e;
-  animation: blinkHint 1.2s steps(1, end) infinite;
+/* ============================================================
+   시작 화면 (스페이스바 / 터치 전까지)
+   ============================================================ */
+/* 화면 아무 데나 눌러도 시작되도록 감싸는 층 (휴대폰 터치용) */
+.viewportTap { position: fixed; inset: 0; touch-action: manipulation; }
+.startScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000;
+  display: grid;
+  grid-auto-flow: row;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(20px, 3.5vmin, 54px);
+  user-select: none;
 }
+.startTitle {
+  font-family: 'Press Start 2P', monospace;
+  /* 한 줄로 유지 — 화면이 좁으면 글자도 같이 작아짐 */
+  font-size: min(7.4vw, 108px);
+  white-space: nowrap;
+  text-align: center;
+  color: #ffd84d;
+  -webkit-text-stroke: 0.09em #1a1a2e;
+  paint-order: stroke fill;
+  text-shadow: 0 0.07em 0 #1a1a2e;
+  letter-spacing: 0.06em;
+  animation: blinkHint 1.4s steps(1, end) infinite;
+}
+.startLoading { font-size: clamp(20px, 3vw, 44px); color: #9aa0b5; }
+
+/* 스페이스바 키캡 — 눌렸다 올라오는 모습 */
+.startKeyWrap { height: clamp(70px, 11vmin, 128px); display: grid; place-items: center; }
+.startKey {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(16px, 2.4vw, 40px);
+  color: #1a1a2e;
+  background: #f2f2f2;
+  border: 8px solid #1a1a2e;
+  border-radius: 14px;
+  padding: clamp(12px, 2vmin, 26px) clamp(36px, 6vw, 86px);
+  box-shadow: 0 12px 0 #8a8fa6;
+  animation: keyPress 1.4s steps(1, end) infinite;
+}
+@keyframes keyPress {
+  0%, 60% { transform: translateY(0); box-shadow: 0 12px 0 #8a8fa6; }
+  61%, 100% { transform: translateY(12px); box-shadow: 0 0 0 #8a8fa6; }
+}
+
+/* 터치 표시 — 동그라미가 커지며 퍼짐 */
+.startTouch { position: relative; width: clamp(130px, 34vw, 220px); aspect-ratio: 1; display: grid; place-items: center; }
+.startTouchRing {
+  position: absolute;
+  inset: 0;
+  border: 8px solid #ffd84d;
+  border-radius: 50%;
+  animation: touchRing 1.4s ease-out infinite;
+}
+.startTouchDot {
+  width: 68%;
+  height: 68%;
+  border-radius: 50%;
+  background: #f2f2f2;
+  border: 8px solid #1a1a2e;
+  display: grid;
+  place-items: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(13px, 3.4vw, 24px);
+  color: #1a1a2e;
+  animation: touchPress 1.4s steps(1, end) infinite;
+}
+@keyframes touchRing {
+  0% { transform: scale(0.72); opacity: 0.9; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+@keyframes touchPress {
+  0%, 60% { transform: scale(1); }
+  61%, 100% { transform: scale(0.9); }
+}
+
+.startHintText { font-size: clamp(17px, 3.4vw, 40px); color: #ffffff; text-shadow: 0 4px 0 #1a1a2e; text-align: center; padding: 0 16px; }
+/* 휴대폰 세로 화면에서만 "가로로 돌리세요" 안내 */
+.startRotate { display: none; font-size: clamp(14px, 3vw, 26px); color: #9aa0b5; }
+@media (orientation: portrait) and (pointer: coarse) {
+  .startRotate { display: block; }
+}
+
 @keyframes blinkHint {
-  0%, 55% { opacity: 0.85; }
-  56%, 100% { opacity: 0.1; }
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0.4; }
 }
 
 /* 벽돌 장애물 (글자 없음). 부딪히는 것은 오른쪽 아래를 축으로 앞으로 넘어짐 */
@@ -257,17 +335,43 @@ body {
 }
 
 /* 거북이 몬스터 (2프레임을 CSS로 번갈아 보여 다리가 움직이는 느낌) */
+/* ============================================================
+   피아노 학원 (27~41초 배경) — 납작한 색과 네모만
+   ============================================================ */
+.roomWall { position: absolute; left: 0; right: 0; top: 0; }
+.roomRail { position: absolute; left: 0; right: 0; height: 10px; }
+.roomWainscot { position: absolute; left: 0; right: 0; }
+.roomFloor { position: absolute; left: 0; right: 0; }
+.roomBase { position: absolute; left: 0; right: 0; height: 16px; }
+.roomWindow { position: absolute; padding: 14px; }
+.roomGlass { position: absolute; inset: 14px; }
+.roomSashV { position: absolute; top: 14px; bottom: 14px; left: 50%; width: 12px; margin-left: -6px; }
+.roomSashH { position: absolute; left: 14px; right: 14px; top: 50%; height: 12px; margin-top: -6px; }
+.roomSign { position: absolute; padding: 12px; }
+.roomSignIn { position: absolute; inset: 12px; display: grid; place-items: center; letter-spacing: 4px; }
+.roomFrame { position: absolute; padding: 12px; }
+.roomFrameIn { position: absolute; inset: 12px; display: grid; place-items: center; }
+
 .turtle { position: absolute; }
-.turtleFrame { position: absolute; left: 0; top: 0; }
-.turtleFrame.tA { animation: turtleA 0.44s steps(1, end) infinite; }
-.turtleFrame.tB { animation: turtleB 0.44s steps(1, end) infinite; }
-@keyframes turtleA {
-  0%, 49.9% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+/* 그림 1장 — 걷는 느낌만 두 칸으로 통통 (프레임이 1장뿐이라 위아래로만) */
+.turtleImg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  animation: turtleStep 0.44s steps(1, end) infinite;
 }
-@keyframes turtleB {
-  0%, 49.9% { opacity: 0; }
-  50%, 100% { opacity: 1; }
+/* flip = 그림을 좌우 반전 (기어가는 방향을 보게) */
+.turtleImg.flip { animation-name: turtleStepFlip; }
+@keyframes turtleStep {
+  0%, 49.9% { transform: translateY(0); }
+  50%, 100% { transform: translateY(-5px); }
+}
+@keyframes turtleStepFlip {
+  0%, 49.9% { transform: scaleX(-1) translateY(0); }
+  50%, 100% { transform: scaleX(-1) translateY(-5px); }
 }
 
 /* 연도별 사진 — 물음표상자를 친 자리에서 동그랗게 떠오름 */
@@ -354,6 +458,11 @@ body {
 .banner { top: 130px; bottom: auto; height: auto; }
 .bannerMain { font-size: 128px; color: #ffd84d; }
 .bannerSub { margin-top: 10px; text-align: center; font-size: 52px; color: #fff; -webkit-text-stroke: 8px #1a1a2e; paint-order: stroke fill; text-shadow: 0 6px 0 #1a1a2e; }
+
+/* 마무리 장면: 배경 없이(순수 검정) 두 사람 도트와 하트만 */
+.clChar { position: absolute; }
+.clBob { position: absolute; inset: 0; }
+.clHeart { position: absolute; left: 0; top: 0; visibility: hidden; opacity: 0; }
 
 /* 마무리 감사 인사: 검은 화면 위 흰 글씨. 한 줄씩 떠올랐다 사라짐 (전부 화면 가운데에 겹쳐 둠) */
 .clLine {

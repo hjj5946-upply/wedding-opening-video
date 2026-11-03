@@ -1,11 +1,12 @@
 // 앱 본체: 화면(Scene) + 타임라인 연결 + 키보드 조작 + 음악
 //
-//  Space : 영상 시작 (이때 소리 허용이 풀립니다)        R : 처음 상태로 (페이지 새로고침)
+//  Space / 화면 터치 : 영상 시작. 이미 시작했는데 멈춰 있으면(= ?t= 로 연 뒤, P로 멈춘 뒤) **재생**
+//  R : 처음 상태로 (페이지 새로고침)
 //  D     : 디버그 표시 켜기/끄기                       P : 일시정지/재개
 //  ← →   : ±5초   [ ] : ±1초   0~8 : 장면 시작으로 점프  (디버그 켜진 상태에서만)
 //
 //  주소 옵션:  ?debug=1   처음부터 디버그 표시
-//              ?t=62      62초 지점에서 멈춘 채로 열기 (화면 확인/캡처용)
+//              ?t=62      62초 지점에서 "멈춘 채로" 열기 (화면 확인/캡처용) → 스페이스바(또는 P)로 재생
 //              ?autostart=1  스페이스 없이 바로 재생 (개발 테스트용)
 //              ?music=0   배경 음악 끄기   ?sfx=0  효과음/비프음 끄기   ?mute=1  전부 끄기
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -14,6 +15,7 @@ import config from './config.js';
 import Stage from './components/Stage.jsx';
 import Scene from './components/Scene.jsx';
 import Debug from './components/Debug.jsx';
+import StartScreen from './components/StartScreen.jsx';
 import { buildTimeline } from './engine/buildTimeline.js';
 import { totalDuration, audioCues } from './engine/timing.js';
 import { unlockAudio, setMute, setMasterVolume, createMusic } from './engine/audio.js';
@@ -27,6 +29,7 @@ export default function App() {
     hudHearts: [],
     obstacles: {},
     closingLines: [],
+    closingHearts: [],
     boxes: {},
     boxFaces: {},
     boxUsed: {},
@@ -38,6 +41,8 @@ export default function App() {
   const api = useRef({ tl: null, update: null, started: false, pausedByUser: false, debug: false, music: null }).current;
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
+  //  손가락으로 쓰는 기기(휴대폰/태블릿)면 "터치" 안내, 아니면 "스페이스바" 안내
+  const [touch] = useState(() => typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches);
 
   // 타임라인 만들기 (첫 화면이 그려지기 전에)
   useLayoutEffect(() => {
@@ -111,9 +116,15 @@ export default function App() {
   // 키보드
   useEffect(() => {
     const onKey = (e) => {
+      unlockAudio(); // 키 입력은 "사용자 조작" → 멈춰 있던 소리를 다시 켤 수 있음 (?t= 로 연 뒤에도 소리가 나게)
       if (e.code === 'Space') {
         e.preventDefault();
-        api.start();
+        if (!api.started) api.start();
+        else if (api.pausedByUser && api.tl) {
+          // 이미 시작한 뒤(예: ?t=62 로 열었거나 P로 멈춘 상태)라면 스페이스 = 재생
+          api.pausedByUser = false;
+          api.tl.paused(false);
+        }
         return;
       }
       if (e.code === 'KeyR') return window.location.reload();
@@ -143,11 +154,20 @@ export default function App() {
 
   return (
     <>
-      <Stage width={config.canvas.width} height={config.canvas.height}>
-        <Scene refs={refs} config={config} />
-        {/* 음악 준비가 끝나면 안내 표시. 스페이스를 누르면 바로 사라집니다 */}
-        {!started && ready && <div className="startHint">PRESS SPACE</div>}
-      </Stage>
+      {/* 화면 아무 데나 누르거나 터치해도 시작 (휴대폰에서는 이게 유일한 방법) */}
+      <div
+        className="viewportTap"
+        onPointerDown={() => {
+          unlockAudio();
+          api.start?.();
+        }}
+      >
+        <Stage width={config.canvas.width} height={config.canvas.height}>
+          <Scene refs={refs} config={config} />
+        </Stage>
+        {/* 시작 화면 — 캔버스 밖(화면 전체)에 그려서 휴대폰에서도 크게 보입니다 */}
+        {!started && <StartScreen config={config} ready={ready} touch={touch} />}
+      </div>
       <Debug api={api} config={config} />
     </>
   );

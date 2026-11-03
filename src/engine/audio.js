@@ -3,7 +3,8 @@
 //  ▶ 브라우저는 사용자 입력(스페이스바) 전에는 소리를 못 내므로 start 시점에 unlockAudio() 를 부릅니다.
 //  ▶ 음악은 mp3를 "미리 디코딩" 해 두고, 영상 시각(타임라인 time)에 맞춰 버퍼를 예약 재생합니다.
 //    → ?t= 이동, ←/→, 숫자키, P(일시정지) 에도 음악이 현재 시각으로 따라옵니다.
-//  ▶ 효과음은 저작권 있는 샘플을 쓰지 않고 전부 오실레이터로 즉석 합성합니다.
+//  ▶ 효과음은 ① config.sfx 에 src(mp3)가 있으면 그 파일을 재생하고
+//    ② 없으면 오실레이터로 즉석 합성합니다. (점프·코인은 깜자가 넣은 mp3, 나머지는 합성)
 
 let ctx = null;
 let masterGain = null;
@@ -44,6 +45,43 @@ export function setMute({ music, sfx } = {}) {
 
 export function setMasterVolume(v) {
   if (masterGain) masterGain.gain.value = v;
+}
+
+// ── 효과음 샘플(mp3) ─────────────────────────────────────────────
+//  짧은 효과음은 "미리 디코딩 → 필요할 때마다 즉시 재생" 합니다 (음악 큐와 달리 여러 번 울림)
+const sfxBuffers = new Map(); // 파일이름 → AudioBuffer
+
+/** config.sfx 안에서 src 가 적힌 효과음들의 mp3를 미리 받아 둡니다 */
+export async function loadSfxSamples(dir, sfxConfig = {}) {
+  unlockAudio();
+  if (!ctx) return;
+  const names = [...new Set(Object.values(sfxConfig).filter((c) => c && c.src).map((c) => c.src))];
+  await Promise.all(
+    names.map(async (src) => {
+      if (sfxBuffers.has(src)) return;
+      try {
+        const res = await fetch(dir + src);
+        if (!res.ok) throw new Error(`${res.status}`);
+        sfxBuffers.set(src, await ctx.decodeAudioData(await res.arrayBuffer()));
+      } catch (e) {
+        console.warn(`[audio] 효과음 ${src} 를 불러오지 못했습니다 (합성음으로 대신합니다): ${e.message}`);
+      }
+    }),
+  );
+}
+
+/** 효과음 mp3 한 번 재생. 못 찾으면 false (→ 합성음으로 대체) */
+function playSample(src, volume = 0.5, rate = 1) {
+  const buf = sfxBuffers.get(src);
+  if (!buf || !ctx || mute.sfx) return !!buf;
+  const node = ctx.createBufferSource();
+  node.buffer = buf;
+  node.playbackRate.value = rate;
+  const gain = ctx.createGain();
+  gain.gain.value = volume;
+  node.connect(gain).connect(sfxGain);
+  node.start();
+  return true;
 }
 
 // ── 합성 효과음 ────────────────────────────────────────────────
@@ -136,7 +174,11 @@ export function playSfx(name, sfxConfig = {}) {
   const c = sfxConfig[name];
   if (!c || c.enabled === false) return;
   const v = c.volume ?? 0.14;
+  // mp3 가 지정돼 있고 준비돼 있으면 그걸 재생 (없으면 아래 합성음)
+  if (c.src && playSample(c.src, v, c.rate ?? 1)) return;
   if (name === 'box') tone({ freq: 220, freq2: 110, duration: 0.09, volume: v, type: 'square' }); // 상자 '통'
+  else if (name === 'hit') tone({ freq: 200, freq2: 80, duration: 0.16, volume: v, type: 'square' }); // 부딪힘 '퉁'
+  else if (name === 'jump') tone({ freq: 440, freq2: 980, duration: 0.14, volume: v, type: 'square' }); // 점프 (mp3 없을 때)
   else if (name === 'pop') tone({ freq: 880, freq2: 1760, duration: 0.11, volume: v, type: 'triangle' }); // 하트 '뿅'
   else if (name === 'heal') tone({ freq: 660, freq2: 1320, duration: 0.22, volume: v, type: 'sine' }); // 하트 채움
   else if (name === 'burst') tone({ freq: 520, freq2: 1500, duration: 0.14, volume: v, type: 'square' }); // 사진 "팡"
@@ -188,6 +230,7 @@ export function createMusic(config, cues) {
         }
       }),
     );
+    await loadSfxSamples(A.dir, config.sfx); // 점프/코인 같은 효과음 mp3도 같이 준비
     loaded = true;
     return true;
   }

@@ -80,6 +80,23 @@ for (const b of config.banners) {
   if (b.at + b.hold > total) errors.push(`배너 ${b.id}: 끝(${b.at + b.hold})이 영상 끝(${total})을 넘어요`);
 }
 
+// 4-2) 피아노 학원 배경 (27~41초) — 맵/HUD 는 게임 시작 때 함께 나옴
+{
+  const R = config.room;
+  const D = config.drop;
+  const G = config.scenes.game;
+  if (!R) errors.push('config.room 이 없어요 (피아노 학원 배경)');
+  else {
+    if (R.showAt > D.fallStart) errors.push(`학원 배경(${R.showAt}초)이 신랑이 떨어지기 시작하는 시각(${D.fallStart}초)보다 늦어요 — 허공에서 떨어집니다`);
+    if (R.hideAt <= R.showAt + R.fadeIn) errors.push(`학원 배경이 다 나타나기도 전에 사라져요 (showAt ${R.showAt} / hideAt ${R.hideAt})`);
+    const endAt = R.hideAt + R.fadeDur;
+    if (Math.abs(endAt - G.start) > 0.01) warns.push(`학원 → 맵 전환이 끝나는 시각(${endAt.toFixed(2)})과 게임 시작(${G.start})이 달라요`);
+    if (R.railY >= config.layout.groundY) errors.push(`room.railY(${R.railY})가 바닥선(${config.layout.groundY})보다 아래예요`);
+    const P = config.piano;
+    if (P.x + P.w > config.canvas.width) warns.push('피아노 그림이 화면 오른쪽을 넘어갑니다 (piano.x / piano.w)');
+  }
+}
+
 // 5) 게임 구간: 물음표상자 / 낭떠러지 / 글자 장애물 / 계단 / 깃발
 const G = config.scenes.game;
 const M = config.map;
@@ -239,9 +256,8 @@ if (timeText(config, stopAt - 0.1) !== `${boxes[boxes.length - 1].year} ${config
     if (st2.at + st2.hold > S.end) warns.push('STAGE 2 배너가 meet 장면 끝을 넘어요');
   }
   // 손잡고 걷기
-  const bowEnd = E.bowAt + E.bowDown + E.bowHold + E.bowUp + 0.1;
-  if (E.bowAt < E.waveAt) errors.push(`meet.bowAt(${E.bowAt})이 손 흔들기 시작(${E.waveAt})보다 빨라요`);
-  if (E.strollAt < bowEnd) errors.push(`meet.strollAt(${E.strollAt})이 꾸벅 인사가 끝나기(${bowEnd.toFixed(2)}) 전이에요`);
+  if (E.waveEnd <= E.waveAt) errors.push(`meet.waveEnd(${E.waveEnd})가 손 흔들기 시작(${E.waveAt})보다 빨라요`);
+  if (E.strollAt < E.waveEnd) errors.push(`meet.strollAt(${E.strollAt})이 손 흔들기가 끝나기(${E.waveEnd}) 전이에요`);
   if (E.strollEnd > S.end) errors.push(`meet.strollEnd(${E.strollEnd})가 meet 장면 끝(${S.end})을 넘어요`);
   const strollSpeed = E.strollDist / (E.strollEnd - E.strollAt);
   if (strollSpeed > 220) warns.push(`손잡고 걷는 속도가 ${strollSpeed.toFixed(0)}px/초 — "쫄쫄" 치고는 빨라요`);
@@ -268,6 +284,30 @@ if (timeText(config, stopAt - 0.1) !== `${boxes[boxes.length - 1].year} ${config
     if (l.at < prevOut) errors.push(`마무리 ${n}번째 줄(${l.at}초)이 앞 줄이 사라지기(${prevOut}초) 전에 나와요`);
     prevOut = l.out;
   });
+  // 마무리 장면(검정 화면 + 양쪽에서 걸어 들어오는 두 사람)
+  const S = C.stage;
+  if (!S) errors.push('closing.stage 가 없어요 (마무리 장면 설정)');
+  else {
+    const bowEnd = S.bowAt + S.bow.down + S.bow.hold + S.bow.up;
+    if (S.showAt < F.start + C.blackoutDur) errors.push(`마무리 두 사람이 나타나는 시각(${S.showAt}초)이 화면이 완전히 검어지기 전이에요`);
+    if (S.hideAt <= S.showAt + S.fadeIn) errors.push(`마무리 두 사람이 다 나타나기도 전에 사라져요 (showAt ${S.showAt} / hideAt ${S.hideAt})`);
+    if (S.hideAt + S.fadeOut > total) errors.push(`마무리 두 사람이 영상 끝(${total}초) 안에 다 사라지지 못해요`);
+    if (S.walkFrom < S.showAt) errors.push(`마무리 걸어오기(${S.walkFrom}초)가 두 사람 층이 켜지기(${S.showAt}초) 전이에요`);
+    if (S.walkEnd <= S.walkFrom) errors.push(`마무리 walkEnd(${S.walkEnd})가 walkFrom(${S.walkFrom})보다 빨라요`);
+    if (S.bowAt < S.walkEnd) errors.push(`꾸벅 인사(${S.bowAt}초)가 두 사람이 가운데에 도착하기(${S.walkEnd}초) 전이에요`);
+    if (bowEnd > S.hideAt) errors.push(`꾸벅 인사가 끝나기(${bowEnd.toFixed(1)}초) 전에 두 사람이 사라져요(${S.hideAt}초)`);
+    if (S.feetY > config.canvas.height) errors.push(`closing.stage.feetY(${S.feetY})가 화면 아래(${config.canvas.height})를 벗어났어요`);
+    const headY = S.feetY - 32 * S.scale; // 도트 32칸
+    if (headY < C.textCenterY + C.size) warns.push(`마무리 글자(중심 ${C.textCenterY})와 두 사람 머리(${headY})가 겹칠 수 있어요`);
+    //  걸어 들어오는 속도 (너무 빠르면 미끄러지듯 보임)
+    const charW = 24 * S.scale;
+    const walkSpeed = (config.canvas.width / 2 + S.walkOutside - (config.canvas.width / 2 - S.gap / 2 - charW) + charW) / (S.walkEnd - S.walkFrom);
+    if (walkSpeed > 460) warns.push(`마무리 걸어오는 속도가 ${walkSpeed.toFixed(0)}px/초 — 미끄러지듯 보일 수 있어요`);
+    if (S.hearts.at < S.walkEnd) warns.push(`마무리 하트(${S.hearts.at}초)가 두 사람이 만나기(${S.walkEnd}초) 전에 떠올라요`);
+    const lastHeart = S.hearts.at + (S.hearts.count - 1) * S.hearts.every + S.hearts.dur;
+    if (lastHeart > S.hideAt) warns.push(`마무리 하트가 두 사람이 사라진 뒤(${lastHeart.toFixed(1)}초)까지 떠올라요`);
+  }
+
   const last = C.lines[C.lines.length - 1];
   const blackTail = total - (last.out + C.fadeOut);
   if (blackTail < 0.3) warns.push('마지막 줄이 사라지자마자 영상이 끝나요 (검정 여유를 0.5초 이상 두면 안전)');
@@ -319,7 +359,10 @@ console.log(`  TIME  ${boxes.map((b) => `${b.apexAt.toFixed(1)}s→${b.year}`).j
 
 console.log('\n마무리 감사 인사 (나타남 → 사라짐)');
 console.log(`  ${f(config.scenes.fade.start)}  (검정 페이드 시작 — ${config.closing.blackoutDur}초 동안)`);
+console.log(`  ${f(config.closing.stage.walkFrom)}  (두 사람이 양쪽에서 걸어 들어옴 → ${f(config.closing.stage.walkEnd)} 가운데 도착)`);
 for (const l of config.closing.lines) console.log(`  ${f(l.at)} → ${f(l.out)}  ${fillTokens(l.text, config)}`);
+console.log(`  ${f(config.closing.stage.bowAt)}  (두 사람 꾸벅 인사)`);
+console.log(`  ${f(config.closing.stage.hideAt)}  (두 사람이 사라지며 완전한 검정 — ${config.closing.stage.fadeOut}초 동안)`);
 
 console.log('\n음악 (웹에서 직접 재생 → OBS 데스크톱 오디오로 함께 녹음)');
 for (const c of sorted) console.log(`  ${f(c.start)} ~ ${f(c.stop)}  ${c.track.padEnd(6)} (${c.src})  볼륨 ${c.volume}  시작위치 ${c.offset}s  페이드 ${c.fadeIn}/${c.fadeOut}s${c.loop ? '  반복' : ''}`);

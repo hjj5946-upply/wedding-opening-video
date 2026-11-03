@@ -22,7 +22,7 @@ npm install
 npm run dev
 ```
 
-브라우저에서 `http://localhost:5173` 을 열고 **F11(전체화면) → 스페이스바**를 누르면 시작합니다.
+브라우저에서 `http://localhost:5173` 을 열고 **F11(전체화면) → 스페이스바**를 누르면 시작합니다. (휴대폰·태블릿은 **화면 터치**)
 
 | 키 | 동작 |
 |---|---|
@@ -110,7 +110,7 @@ git push -u origin main
 
 | 파일 | 위치 | 없으면 |
 |---|---|---|
-| `intro.mp3`, `inGame.mp3`, `outro.mp3`, `walk.mp3` | `public/assets/audio/` | 소리 없이 재생되고 "PRESS SPACE" 안내가 늦게 뜸 |
+| `intro.mp3`, `inGame.mp3`, `outro.mp3`, `walk.mp3`, `jump.mp3`, `coin.mp3` | `public/assets/audio/` | 소리 없이 재생되고 시작 화면이 늦게 뜸 (효과음은 합성음으로 대체) |
 | `year1.jpg` ~ `year8.jpg` | `public/assets/photos/` | "1 YEAR" 같은 **임시 동그라미**가 대신 나옴 (영상은 정상) |
 | `grandPiano.png` | `public/assets/images/` | 피아노가 안 보임 |
 

@@ -4,7 +4,7 @@
 import Character from './Character.jsx';
 import PixelArt from './PixelArt.jsx';
 import { brideSprite } from '../sprites/bride.js';
-import { hill, cloud, bush, turtleA, turtleB } from '../sprites/props.js';
+import { hill, cloud, bush } from '../sprites/props.js';
 import { allBoxes, allPits, allObstacles, turtleInfo, stairsInfo, flagInfo, scrollMax, worldWidth } from '../engine/timing.js';
 
 // 매번 같은 배치가 나오도록 고정 시드 난수
@@ -117,9 +117,6 @@ export default function World({ refs, config, charStyle, charW }) {
           <Pipe key={i} {...p} groundY={groundY} />
         ))}
 
-        {/* 그랜드 피아노 (이미지) */}
-        <img className="pianoImg" src={P.src} alt="" style={{ left: P.x, width: P.w, bottom: H - P.bottomY }} />
-
         {/* 물음표상자 8개 = 1~8년. 치면 빈 상자(갈색)로 바뀜 */}
         {boxes.map((b) => (
           <div key={b.id} className="qbox" ref={(el) => (refs.boxes[b.id] = el)} style={{ left: b.left, top: b.top, width: b.w, height: b.h }}>
@@ -140,11 +137,10 @@ export default function World({ refs, config, charStyle, charW }) {
           />
         ))}
 
-        {/* 거북이 몬스터 1마리 (왼쪽으로 기어옴 — 신랑이 점프로 넘음) */}
+        {/* 거북이 몬스터 1마리 (왼쪽으로 기어옴 — 신랑이 점프로 넘음). 그림: assets/images/turtle.png */}
         {turtle && (
           <div className="turtle" ref={(el) => (refs.turtle = el)} style={{ left: turtle.left, top: groundY - turtle.h, width: turtle.w, height: turtle.h }}>
-            <PixelArt art={turtleA} cell={turtle.w / 21} className="turtleFrame tA" />
-            <PixelArt art={turtleB} cell={turtle.w / 21} className="turtleFrame tB" />
+            <img className={`turtleImg${turtle.flip ? ' flip' : ''}`} src={`./assets/images/${turtle.src}`} alt="" onError={(e) => (e.currentTarget.style.display = 'none')} />
           </div>
         )}
 

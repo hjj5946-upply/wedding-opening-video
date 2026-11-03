@@ -1,4 +1,5 @@
-// 임시 신랑 도트 (24×32칸). 검정 정장 + 보타이 + 가르마 머리
+// 임시 신랑 도트 (24×32칸). 검정 정장 + 검정 보타이 + 6:4 가르마 머리
+//  가르마 선(H)은 앞모습 기준 x=13칸 — 왼쪽(5~12칸, 8칸)이 넓고 오른쪽(14~18칸, 5칸)이 좁은 6:4
 //  - 옆모습은 "오른쪽을 보는 방향"으로만 그립니다. 왼쪽은 화면에서 좌우 반전(PixelSprite).
 //  - 프레임 이름 = <포즈>_<번호>. PNG로 바꿀 땐 public/assets/sprites/groom/<포즈>_<번호>.png 를 넣으면 자동 교체.
 //  - 글자 → 색: sprites/compile.js 의 LEGEND (h 머리, H 가르마, s 피부, j 정장, J 정장 하이라이트, d 정장 그림자, t/T 보타이, f 구두 ...)
@@ -11,8 +12,8 @@ const R = (rows) => rows.map(([left, s]) => row(W, left, s));
 // ─────────────────────────────── 옆모습 (오른쪽을 봄) ───────────────────────────────
 const SIDE_HEAD = R([
   [9, 'hhhhhh'],
-  [7, 'hhhhhhHHhh'],
-  [6, 'hhhhhhhhHHHh'],
+  [7, 'hhhhhHhhhh'], // H = 가르마 선 (옆에서 보면 정수리 쪽)
+  [6, 'hhhhhhHhhhhh'], // 가르마 선
   [5, 'hhhhhhhhhhhHHh'],
   [5, 'hhhhhhhhhhhhhhh'], // 앞머리가 이마 쪽으로 살짝 나옴
   [5, 'hhhhhhhssssshh'],
@@ -164,13 +165,13 @@ const HIT = [
 // ─────────────────────────────── 앞모습 ───────────────────────────────
 const FRONT_HEAD = R([
   [9, 'hhhhhh'],
-  [7, 'hhhhHHhhhh'],
-  [6, 'hhhhhHhhhhhh'], // H = 가르마 선
-  [5, 'hhhhhhHhhhhhhh'],
-  [5, 'hhhhhsHhhhhhhh'],
-  [5, 'hhssssshhhhhhh'], // 가르마 오른쪽 머리가 이마 위로 넘어감
-  [5, 'hsssssssssshhh'],
-  [5, 'hssssssssssssh'],
+  [7, 'hhhhhhHhhh'], // H = 가르마 선 (13칸 — 왼쪽 8칸 : 오른쪽 5칸 ≒ 6:4)
+  [6, 'hhhhhhhHhhhh'],
+  [5, 'hhhhhhhhHhhhhh'],
+  [5, 'hhhhhhhhhhsshh'], // 가르마 오른쪽(좁은 쪽)부터 이마가 보이기 시작
+  [5, 'hhhhhhhhsssshh'],
+  [5, 'hhhhhhsssssshh'], // 넓은 쪽 앞머리가 왼쪽 아래로 비스듬히 내려옴
+  [5, 'hhhssssssssssh'],
   [5, 'hssessssssessh'], // 눈
   [5, 'sssessssssesss'], // 귀
   [6, 'sssssmmsssss'], // 입
@@ -218,11 +219,11 @@ const FRONT_STAND = front([...ARM_L_DOWN, ...ARM_R_DOWN]);
 //  (몸/다리는 그대로 두고 "머리만" 아래로 내린 뒤 머리를 몸 위에 덧칠 → 고개를 숙인 모양)
 const BOW_HEAD_1 = R([
   [9, 'hhhhhh'],
-  [7, 'hhhhHHhhhh'],
-  [6, 'hhhhhHhhhhhh'],
-  [5, 'hhhhhhHhhhhhhh'],
-  [5, 'hhhhhhHhhhhhhh'],
-  [5, 'hhhhhhHhhhhhhh'], // 정수리가 더 보임
+  [7, 'hhhhhhHhhh'],
+  [6, 'hhhhhhhHhhhh'],
+  [5, 'hhhhhhhhHhhhhh'],
+  [5, 'hhhhhhhhHhhhhh'],
+  [5, 'hhhhhhhhHhhhhh'], // 정수리가 더 보임
   [5, 'hhsssssshhhhhh'],
   [5, 'hssssssssssssh'],
   [5, 'hsseesssseessh'], // 감은 눈
@@ -231,11 +232,11 @@ const BOW_HEAD_1 = R([
 ]);
 const BOW_HEAD_2 = R([
   [9, 'hhhhhh'],
-  [7, 'hhhhHHhhhh'],
-  [6, 'hhhhhHhhhhhh'],
-  [5, 'hhhhhhHhhhhhhh'],
-  [5, 'hhhhhhHhhhhhhh'],
-  [5, 'hhhhhhHhhhhhhh'],
+  [7, 'hhhhhhHhhh'],
+  [6, 'hhhhhhhHhhhh'],
+  [5, 'hhhhhhhhHhhhhh'],
+  [5, 'hhhhhhhhHhhhhh'],
+  [5, 'hhhhhhhhHhhhhh'],
   [5, 'hhhhhhhhhhhhhh'],
   [5, 'hhhhhhhhhhhhhh'], // 거의 정수리만
   [5, 'hhhssssssshhhh'],

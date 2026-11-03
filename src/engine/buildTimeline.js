@@ -40,6 +40,11 @@ export function buildTimeline({ refs, config, flags }) {
       refs[`${who}Sprite`]?.setFrame(p.frame, p.facing);
       steps.update(who, p, t);
     }
+    // 마무리 장면 전용 도트 (제자리에 서 있다가 꾸벅 — 발걸음 소리 없음)
+    for (const who of ['closeGroom', 'closeBride']) {
+      const p = poses.at(who, t);
+      refs[`${who}Sprite`]?.setFrame(p.frame, p.facing);
+    }
     dialogue.update(t);
     hud.update(t);
   };

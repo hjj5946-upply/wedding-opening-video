@@ -1,5 +1,5 @@
 // HUD (하트 + TIME)
-//  · 착지할 때 위에서 톡 내려오며 등장
+//  · 게임이 시작될 때(41초, 맵이 나오는 순간) 위에서 톡 내려오며 등장 — 피아노 학원 구간에는 안 보임
 //  · 하트: 글자 장애물에 부딪히면 오른쪽부터 터지듯 사라지고, 신부를 만나면 하나씩 다시 채워짐
 //  · TIME: 물음표상자를 칠 때마다 1 YEAR 씩 → 깃발을 친 뒤에는 '8 YEAR 6 MONTH'
 //    숫자는 "현재 시각"으로 계산(update) → 시간 이동/되감기에도 정확
@@ -13,7 +13,7 @@ export function buildHud({ tl, refs, config, flags }) {
 
   // 등장
   tl.set(refs.hud, { autoAlpha: 0 }, 0);
-  tl.fromTo(refs.hud, { autoAlpha: 0, y: -40 }, { autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', immediateRender: false }, config.drop.landAt);
+  tl.fromTo(refs.hud, { autoAlpha: 0, y: -40 }, { autoAlpha: 1, y: 0, duration: 0.35, ease: 'back.out(2)', immediateRender: false }, config.scenes.game.start);
 
   // 하트 처음 상태
   for (const el of refs.hudHearts) if (el) tl.set(el, { autoAlpha: 1, scale: 1 }, 0);
