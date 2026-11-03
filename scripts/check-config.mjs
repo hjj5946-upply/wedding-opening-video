@@ -97,6 +97,18 @@ for (const b of config.banners) {
   }
 }
 
+// 4-3) 게임 자막칸이 화면 아래 끝에 너무 붙지 않는지 (예식장: 아래쪽은 잘리거나 가릴 수 있음)
+{
+  const GB = config.bubble.game;
+  const H = config.canvas.height;
+  //  두 줄 기준 대략 높이 = 글자 2줄(1.35배) + 여백/테두리
+  const boxH = Math.round(GB.fontSize * 1.35 * 2 + GB.fontSize * 0.7 + 12);
+  const bottomGap = H - (GB.y + boxH);
+  if (bottomGap < 0) errors.push(`게임 자막칸이 화면 아래(${H})를 넘어가요 (아래 끝 y=${GB.y + boxH})`);
+  else if (bottomGap < H * 0.08) warns.push(`게임 자막칸 아래 여백이 ${bottomGap}px (${((bottomGap / H) * 100).toFixed(1)}%) — 프로젝터에서 잘릴 수 있어요 (10% 이상 권장)`);
+  if (GB.y < config.layout.groundY) warns.push(`게임 자막칸(y=${GB.y})이 바닥선(${config.layout.groundY})보다 위라 신랑/장애물을 가립니다`);
+}
+
 // 5) 게임 구간: 물음표상자 / 낭떠러지 / 글자 장애물 / 계단 / 깃발
 const G = config.scenes.game;
 const M = config.map;
@@ -306,6 +318,15 @@ if (timeText(config, stopAt - 0.1) !== `${boxes[boxes.length - 1].year} ${config
     if (S.hearts.at < S.walkEnd) warns.push(`마무리 하트(${S.hearts.at}초)가 두 사람이 만나기(${S.walkEnd}초) 전에 떠올라요`);
     const lastHeart = S.hearts.at + (S.hearts.count - 1) * S.hearts.every + S.hearts.dur;
     if (lastHeart > S.hideAt) warns.push(`마무리 하트가 두 사람이 사라진 뒤(${lastHeart.toFixed(1)}초)까지 떠올라요`);
+  }
+
+  // 오른쪽 위 안내 문구
+  if (C.notice) {
+    const N = C.notice;
+    if (N.at < SC.start) errors.push(`마무리 안내(${N.at}초)가 closing 장면 시작(${SC.start})보다 빨라요`);
+    if (N.out <= N.at) errors.push(`마무리 안내: out(${N.out})이 at(${N.at})보다 빨라요`);
+    if (N.out > total) errors.push(`마무리 안내가 영상 끝(${total}초)을 넘어요`);
+    if (N.y < 40) warns.push('마무리 안내가 화면 위 끝에 너무 가까워요 (프로젝터에서 잘릴 수 있음)');
   }
 
   const last = C.lines[C.lines.length - 1];

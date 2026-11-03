@@ -33,7 +33,9 @@ export const config = {
 
   // ── 배치 ───────────────────────────────────────────────────
   layout: {
-    groundY: 800, // 맵의 바닥선 y좌표 (캐릭터 발이 닿는 높이)
+    //  바닥선을 올릴수록 아래쪽에 자막칸 자리가 생깁니다 (예식장: 자막이 화면 맨 아래면 잘릴 수 있음)
+    //  이 값을 바꾸면 땅·장애물·계단·깃발·피아노방 바닥이 전부 따라옵니다. 상자(boxY)·사진(riseY)은 따로 맞추세요.
+    groundY: 740, // 맵의 바닥선 y좌표 (캐릭터 발이 닿는 높이) — 2026-11-04: 800 → 740
     charH: 224, // 캐릭터 높이(px) = 도트 32칸 × sprites.scale 7
   },
 
@@ -84,7 +86,7 @@ export const config = {
     parallax: { clouds: 0.25, hills: 0.5 }, // 배경이 땅보다 얼마나 천천히 흐르는지
     jump: { air: 0.85, height: 240 }, // 보통 점프: 체공(초) / 높이(px)
     pitJump: { air: 1.05, height: 250 }, // 낭떠러지 건너뛰기
-    boxY: 280, // 물음표상자 위쪽 y
+    boxY: 240, // 물음표상자 위쪽 y (바닥선을 올린 만큼 같이 올림)
     boxSize: 72, // 상자 한 칸 크기(px)
 
     // ── 물음표상자 8개 = 1년 ~ 8년 ──────────────────────────────
@@ -147,11 +149,11 @@ export const config = {
       { x: 1500, h: 2 },
       { x: 7000, h: 3 },
     ],
-    // 장식 벽돌 — 물음표상자(y 280)보다 위에 둬서 점프하는 신랑과 겹치지 않게
+    // 장식 벽돌 — 물음표상자(y 240)보다 위에 둬서 점프하는 신랑과 겹치지 않게
     blockRows: [
-      { x: 2850, y: 196, pattern: 'BB' },
-      { x: 5600, y: 196, pattern: 'BBB' },
-      { x: 8450, y: 196, pattern: 'BB' },
+      { x: 2850, y: 156, pattern: 'BB' },
+      { x: 5600, y: 156, pattern: 'BBB' },
+      { x: 8450, y: 156, pattern: 'BB' },
     ],
     decorSeed: 7, // 구름/언덕/덤불 배치용 난수 씨앗
   },
@@ -176,9 +178,10 @@ export const config = {
     baseboard: '#8a5d33', // 걸레받이
     //  창문 1개 + 음표 액자 2개 (전부 납작한 색 — 무거운 효과 없음)
     window: { x: 1360, y: 150, w: 380, h: 280, frame: '#8a5d33', glass: '#bfe6f7', sash: '#f6fbff' },
+    //  말풍선(y 250쯤부터)에 가리지 않도록 벽 위쪽에 겁니다
     frames: [
-      { x: 150, y: 170, w: 150, h: 130 },
-      { x: 340, y: 170, w: 150, h: 130 },
+      { x: 150, y: 90, w: 150, h: 130 },
+      { x: 340, y: 90, w: 150, h: 130 },
     ],
     frameColor: '#8a5d33',
     frameInner: '#fffaf0',
@@ -187,7 +190,7 @@ export const config = {
     sign: {
       text: '쇼팽반',
       x: 620,
-      y: 170,
+      y: 90,
       w: 330,
       h: 130,
       size: 64, // 글자 크기(px)
@@ -201,7 +204,7 @@ export const config = {
     src: './assets/images/grandPiano.png',
     x: 246, // 그림 왼쪽 끝 (맵 좌표)
     w: 700, // 그림 폭 (비율 유지 → 높이 자동)
-    bottomY: 832, // 그림 아래쪽이 놓이는 y
+    bottomY: 772, // 그림 아래쪽이 놓이는 y (바닥선 + 32)
   },
 
   // ── 연도별 사진 (물음표상자를 치면 그 자리에서 동그랗게 떠올랐다가 "팡") ──
@@ -209,8 +212,8 @@ export const config = {
   //  권장: public/assets/photos/year1.jpg ~ year8.jpg, 긴 변 1200px 이하 jpg
   photos: {
     dir: './assets/photos/',
-    size: 280, // 동그라미 지름(px)
-    riseY: 10, // 상자 중심에서 위로 얼마나 떠오르는지(px) — HUD 하트/신랑과 안 겹치게 작게
+    size: 320, // 동그라미 지름(px) — 2026-11-04: 280 → 320 (조금 더 크게)
+    riseY: -60, // 상자 중심에서 위로 얼마나 떠오르는지(px). 음수 = 아래쪽. HUD 하트와 신랑 머리 사이에 들어가도록 맞춘 값
     drift: 130, // 떠 있는 동안 왼쪽으로 흘러가는 속도(px/초) — 맵보다 느려서 오래 보임
     //  동그라미 안에서 사진의 어느 부분을 보여줄지. 사진마다 list 에서 따로 적을 수 있습니다(아래).
     //  가로 % = 왼쪽(0%) ~ 오른쪽(100%) / 세로 % = 위(0%) ~ 아래(100%). 얼굴이 잘리면 이 값만 조절하세요.
@@ -259,8 +262,8 @@ export const config = {
     layout: 'above',
     side: { maxWidth: 1420, gap: 40, centerY: 0.32 },
     above: { maxWidth: 1400, gap: 34, tailX: 150 },
-    // 게임 구간 전용: 화면 아래쪽 고정 자막칸 (상자/사진/HUD와 안 겹침, 최대 2줄)
-    game: { x: 80, y: 846, maxWidth: 1760, fontSize: 60 },
+    // 게임 구간 전용: 고정 자막칸 (바닥선 바로 아래, 화면 끝에서 110px 띄움 — 예식장 프로젝터에서 잘리지 않게)
+    game: { x: 80, y: 752, maxWidth: 1760, fontSize: 60 }, // 2026-11-04: 846 → 752 (아래 여백 10% 확보)
   },
 
   // ── 소리: 말풍선 말소리 + 효과음 ────────────────────────────────
@@ -306,7 +309,7 @@ export const config = {
       intro: { src: 'intro.mp3', volume: 0.4, offset: 0, loop: false }, // 40.5초
       game: { src: 'inGame.mp3', volume: 0.34, offset: 0, loop: true }, // 125.2초
       //  ▼ 마무리 곡 — src 만 바꾸면 바로 교체됩니다 ('outro.mp3' ↔ 'outro2.mp3')
-      outro: { src: 'outro.mp3', volume: 0.42, offset: 0, loop: false }, // 83.6~117초(33.4초) 사용
+      outro: { src: 'outro2.mp3', volume: 0.42, offset: 0, loop: false }, // 83.6~117초(33.4초) 사용
     },
     //  start/stop = 영상 시각(초). fadeOut 은 stop "이전"부터 서서히 줄어듭니다.
     cues: [
@@ -401,6 +404,18 @@ export const config = {
       bow: { down: 0.5, hold: 1.0, up: 0.6 },
       //  두 사람 사이에서 하트가 천천히 떠오름
       hearts: { count: 3, at: 100.6, every: 5.2, rise: 150, dur: 3.6, scale: 5, y: 140, spread: 120 },
+    },
+    //  마지막 줄쯤에 오른쪽 위에서 잠깐 깜빡이는 안내
+    notice: {
+      text: '다시보기는 모바일청첩장 하단에 ◀',
+      at: 111.0, // 나타나는 시각
+      out: 115.2, // 사라지는 시각
+      right: 96, // 화면 오른쪽에서 띄운 거리(px)
+      y: 96, // 위에서부터 y (프로젝터에서 잘리지 않게 10% 안쪽)
+      size: 44,
+      color: '#ffd84d',
+      blink: 1.2, // 깜빡임 한 주기(초) — 너무 빠르면 읽기 어려움
+      dim: 0.2, // 깜빡일 때 어두워지는 정도 (0 = 완전히 사라짐)
     },
     //  at = 나타나는 시각 / out = 사라지기 시작하는 시각. 한 줄이 3초쯤 온전히 보입니다
     lines: [

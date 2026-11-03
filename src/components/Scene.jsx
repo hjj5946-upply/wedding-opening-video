@@ -94,6 +94,17 @@ export default function Scene({ refs, config }) {
       {/* 마무리 배경 (밤하늘 + 나란히 선 두 사람) — 검정 위, 글자 아래 */}
       <ClosingStage refs={refs} config={config} />
 
+      {/* 마무리 안내 — 오른쪽 위에서 잠깐 깜빡임 */}
+      {C.notice && (
+        <div
+          className="closingNotice"
+          ref={(el) => (refs.closingNotice = el)}
+          style={{ right: C.notice.right, top: C.notice.y, fontSize: C.notice.size, color: C.notice.color }}
+        >
+          {fillTokens(C.notice.text, config)}
+        </div>
+      )}
+
       {/* 마무리 감사 인사 (한 줄씩 나타났다 사라짐) */}
       {/* paddingBottom 으로 글자 뭉치를 위로 올림 → 아래쪽은 두 사람 자리 */}
       <div className="layer closing" style={{ paddingBottom: Math.max(0, (config.canvas.height / 2 - C.textCenterY) * 2) }}>

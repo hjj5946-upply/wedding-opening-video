@@ -71,7 +71,18 @@ export function buildClosing({ tl, refs, config, poses }) {
     poses.add(who, bowEnd + off, Infinity, 'frontStand');
   }
 
-  // 7) 감사 인사: 화면 위쪽에 한 줄씩 떠올랐다(fadeIn) 사라짐(fadeOut)
+  // 7) 오른쪽 위 "다시보기" 안내 — 마지막 줄쯤에 잠깐 깜빡였다 사라짐
+  const N = C.notice;
+  if (N && refs.closingNotice) {
+    const el = refs.closingNotice;
+    const half = Math.max(0.15, N.blink / 2);
+    const reps = Math.max(1, Math.round((N.out - N.at) / half) - 1);
+    tl.set(el, { autoAlpha: 0 }, 0);
+    tl.fromTo(el, { autoAlpha: 1 }, { autoAlpha: N.dim ?? 0.15, duration: half, ease: 'none', repeat: reps, yoyo: true, immediateRender: false }, N.at);
+    tl.set(el, { autoAlpha: 0 }, N.out);
+  }
+
+  // 8) 감사 인사: 화면 위쪽에 한 줄씩 떠올랐다(fadeIn) 사라짐(fadeOut)
   C.lines.forEach((line, i) => {
     const el = refs.closingLines[i];
     if (!el) return;

@@ -79,6 +79,15 @@ body {
 .blackout { z-index: 10; background: #000; }
 .closingStage { z-index: 11; }
 .closing { z-index: 12; visibility: visible; opacity: 1; display: grid; place-items: center; }
+/* 마무리 오른쪽 위 안내 (다시보기) */
+.closingNotice {
+  position: absolute;
+  z-index: 13;
+  visibility: hidden;
+  opacity: 0;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 0 #1a1a2e;
+}
 
 /* ============================================================
    캐릭터 / 말풍선
