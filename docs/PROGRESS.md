@@ -6,7 +6,7 @@
 
 ## ⚠ 다른 PC에서 시작할 때 꼭 챙길 것
 1. `npm install`
-2. **mp3 6개는 깃에 올라가지 않습니다.** `public/assets/audio/` 에 `intro.mp3`, `inGame.mp3`, `outro.mp3`, `walk.mp3`, **`jump.mp3`, `coin.mp3`** 를 USB 등으로 **따로 복사**하세요.
+2. **음원 mp3 는 깃에 포함돼 있습니다** (2026-11-04부터). `git clone` 만 하면 `public/assets/audio/` 에 `intro / inGame / outro / walk / jump / coin .mp3` 가 함께 받아집니다.
    없으면 소리만 안 나고 화면은 정상 재생됩니다 (콘솔에 경고만 뜸).
 3. 사진 `public/assets/photos/year1.jpg ~ year8.jpg` 는 **깃에 올라갑니다**(1200px 리사이즈본).
    원본(`public/assets/images/1year.jpg~8year.jpg`)은 용량이 커서 깃에서 제외됩니다.

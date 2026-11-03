@@ -10,9 +10,11 @@ recordings/
 *.mov
 *.zip
 
-# 음원도 저작권/용량 때문에 깃에 올리지 않음 (필요하면 직접 예외 처리)
-public/assets/audio/*
-!public/assets/audio/.gitkeep
+# 음원: 배포본(GitHub Pages)에서도 소리가 나야 해서 깃에 포함합니다 (2026-11-04 결정)
+#  ▶ 저장소가 public 이면 음원도 공개됩니다. 다시 빼려면 아래 두 줄의 주석을 풀고
+#     `git rm --cached public/assets/audio/*.mp3` 를 실행하세요.
+# public/assets/audio/*
+# !public/assets/audio/.gitkeep
 
 # 원본 사진(수십 MB)은 깃에 올리지 않음 — 리사이즈본(public/assets/photos/yearN.jpg)만 올림
 public/assets/images/*year.jpg

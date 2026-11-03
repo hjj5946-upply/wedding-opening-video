@@ -110,7 +110,7 @@ git push -u origin main
 
 | 파일 | 위치 | 없으면 |
 |---|---|---|
-| `intro.mp3`, `inGame.mp3`, `outro.mp3`, `walk.mp3`, `jump.mp3`, `coin.mp3` | `public/assets/audio/` | 소리 없이 재생되고 시작 화면이 늦게 뜸 (효과음은 합성음으로 대체) |
+| `intro.mp3`, `inGame.mp3`, `outro.mp3`, `walk.mp3`, `jump.mp3`, `coin.mp3` | `public/assets/audio/` (**깃에 포함**) | 파일이 없으면 소리 없이 재생되고 효과음은 합성음으로 대체 |
 | `year1.jpg` ~ `year8.jpg` | `public/assets/photos/` | "1 YEAR" 같은 **임시 동그라미**가 대신 나옴 (영상은 정상) |
 | `grandPiano.png` | `public/assets/images/` | 피아노가 안 보임 |
 

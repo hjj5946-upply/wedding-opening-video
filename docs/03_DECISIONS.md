@@ -2,6 +2,12 @@
 
 > 새 결정이 나오면 맨 위에 추가하세요. (날짜, 결정, 이유)
 
+## 2026-11-04 (배포)
+- **GitHub Pages 자동 배포**(`.github/workflows/deploy.yml`). main 에 푸시하면 `npm run check` → `build` → Pages. 주소: `https://hjj5946-upply.github.io/wedding-opening-video/`
+- **음원 mp3 를 깃에 포함하기로 변경** (이전: 저작권·용량 때문에 `.gitignore` 로 제외). 배포 링크로 들어갔을 때 소리까지 나와야 한다는 깜자 요청. 총 약 9MB.
+  - ⚠ 저장소가 **public** 이라 음원도 공개 다운로드가 가능해집니다. 예식이 끝나면 저장소를 private 으로 바꾸거나 Pages 를 끄는 것을 권합니다.
+  - 되돌리려면 `.gitignore` 의 두 줄 주석을 풀고 `git rm --cached public/assets/audio/*.mp3`.
+
 ## 2026-11-03 (P04-5 — 시작 화면)
 - **"PRESS SPACE" 한 줄 → 제대로 된 시작 화면**(`components/StartScreen.jsx`, 문구는 `config.startScreen`). 검은 바탕 가운데에 **GAME START** + **눌러야 할 것**(PC는 스페이스바 키캡이 눌렸다 올라오는 모습 / 휴대폰은 TOUCH 동그라미가 퍼지는 모습) + 한국어 안내 한 줄.
 - **화면 아무 곳이나 눌러도 시작**(`pointerdown`). 휴대폰에는 키보드가 없고, 터치로 시작해야 브라우저가 소리를 허용해 줍니다. PC에서는 클릭으로도 시작됩니다.
