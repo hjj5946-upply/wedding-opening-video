@@ -35,6 +35,8 @@ export default function Scene({ refs, config }) {
   const C = config.closing;
   const P = config.photos;
   const GB = config.bubble.game;
+  //  배너를 화면 가운데 기준으로 위/아래로 옮기는 값 (config.bannerCenterY)
+  const bannerShift = (config.canvas.height / 2 - (config.bannerCenterY ?? config.canvas.height / 2)) * 2;
 
   return (
     <>
@@ -77,9 +79,14 @@ export default function Scene({ refs, config }) {
         <Bubble ref={(h) => (refs.gameBubble = h)} bubble={config.bubble} />
       </div>
 
-      {/* 큰 글자 배너 */}
+      {/* 큰 글자 배너 — config.bannerCenterY 높이에 가운데 정렬 */}
       {config.banners.map((b) => (
-        <div key={b.id} className="layer banner" ref={(el) => (refs.banners[b.id] = el)}>
+        <div
+          key={b.id}
+          className="layer banner"
+          ref={(el) => (refs.banners[b.id] = el)}
+          style={{ paddingBottom: Math.max(0, bannerShift), paddingTop: Math.max(0, -bannerShift) }}
+        >
           <div className="bannerMain">{fillTokens(b.text, config)}</div>
           {b.sub && <div className="bannerSub">{fillTokens(b.sub, config)}</div>}
         </div>

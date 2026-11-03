@@ -183,6 +183,9 @@ for (let i = 0; i < boxes.length; i++) {
     errors.push(`${boxes[i].year}년 사진이 ${boxes[i + 1].year}년 상자(${boxes[i + 1].apexAt}초)보다 늦게 사라져요 — photos.hold 를 ${(boxes[i + 1].apexAt - boxes[i].apexAt - 0.65).toFixed(2)} 이하로 줄이세요`);
   }
   if (pt.end > config.scenes.game.end) errors.push(`${boxes[i].year}년 사진이 game 장면 끝을 넘어요`);
+  //  흘러가다 화면 밖에서 터지면 "팡" 이 안 보임
+  const endX = config.map.groomX + (config.photos.offsetX ?? 0) - config.photos.drift * pt.floatDur;
+  if (endX + config.photos.size / 2 < 60) warns.push(`${boxes[i].year}년 사진이 화면 왼쪽 밖(x=${Math.round(endX)})에서 터져요 — photos.drift 를 줄이세요`);
 }
 const hitCount = words.filter((o) => o.hit).length;
 if (hitCount !== 2) warns.push(`부딪히는 장애물이 ${hitCount}개예요 (요청 기준은 2개 — 하트 3→1)`);
@@ -191,12 +194,31 @@ if (hitCount !== 2) warns.push(`부딪히는 장애물이 ${hitCount}개예요 (
 {
   const PH = config.photos;
   const r = PH.size / 2;
+  const cx = M.groomX + (PH.offsetX ?? 0); // 동그라미 중심 x (상자에서 오른쪽으로 띄움)
   const cy = M.boxY + M.boxSize / 2 - PH.riseY;
+  //  어떤 네모(사각형)와 동그라미가 겹치는지
+  const hits = (x0, y0, x1, y1) => {
+    const nx = Math.max(x0, Math.min(cx, x1));
+    const ny = Math.max(y0, Math.min(cy, y1));
+    return Math.hypot(cx - nx, cy - ny) < r;
+  };
   const H = config.hud.hearts;
+  const heartRight = H.x + H.count * 16 * H.scale + (H.count - 1) * H.gap;
   const heartBottom = H.y + 14 * H.scale; // 하트 도트 높이 14칸
-  if (cy - r < heartBottom + 10) errors.push(`사진 동그라미 위쪽(y=${Math.round(cy - r)})이 HUD 하트(아래 y=${Math.round(heartBottom)})와 겹쳐요 — photos.riseY 를 줄이거나 size 를 줄이세요`);
+  //  HUD 는 사진보다 위에 그려지므로(styles.css: .hud z-index 7) 조금 겹치는 건 괜찮습니다
+  if (hits(H.x, H.y, heartRight, heartBottom)) warns.push('사진 동그라미가 HUD 하트와 겹칩니다 (하트가 위에 그려지므로 보이기는 합니다)');
   const groomTop = config.layout.groundY - config.layout.charH;
-  if (cy + r > groomTop - 10) warns.push(`사진 동그라미 아래쪽(y=${Math.round(cy + r)})이 신랑 머리(y=${groomTop})와 가까워요`);
+  //  신랑(머리~발)을 가리는지 — 사진이 떠 있는 동안 왼쪽으로 흘러간 끝 위치까지 확인
+  const cxEnd = cx - PH.drift * PH.hold;
+  const groomBox = [M.groomX - GROOM_HIT_W / 2, groomTop, M.groomX + GROOM_HIT_W / 2, config.layout.groundY];
+  const hitsEnd = (() => {
+    const nx = Math.max(groomBox[0], Math.min(cxEnd, groomBox[2]));
+    const ny = Math.max(groomBox[1], Math.min(cy, groomBox[3]));
+    return Math.hypot(cxEnd - nx, cy - ny) < r;
+  })();
+  if (hits(...groomBox) || hitsEnd) warns.push('사진 동그라미가 서 있는 신랑을 가립니다 (photos.offsetX 를 키우거나 size 를 줄이세요)');
+  if (cx + r > config.canvas.width - 20) errors.push(`사진 동그라미가 화면 오른쪽을 넘어가요 (오른쪽 끝 x=${Math.round(cx + r)})`);
+  if (cy - r < 20) errors.push(`사진 동그라미가 화면 위를 넘어가요 (위쪽 y=${Math.round(cy - r)})`);
   const GB = config.bubble.game;
   if (cy + r > GB.y) errors.push('사진 동그라미가 게임 자막칸과 겹쳐요');
 }

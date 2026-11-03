@@ -35,7 +35,7 @@ export const config = {
   layout: {
     //  바닥선을 올릴수록 아래쪽에 자막칸 자리가 생깁니다 (예식장: 자막이 화면 맨 아래면 잘릴 수 있음)
     //  이 값을 바꾸면 땅·장애물·계단·깃발·피아노방 바닥이 전부 따라옵니다. 상자(boxY)·사진(riseY)은 따로 맞추세요.
-    groundY: 740, // 맵의 바닥선 y좌표 (캐릭터 발이 닿는 높이) — 2026-11-04: 800 → 740
+    groundY: 700, // 맵의 바닥선 y좌표 (캐릭터 발이 닿는 높이) — 2026-11-04: 800 → 700
     charH: 224, // 캐릭터 높이(px) = 도트 32칸 × sprites.scale 7
   },
 
@@ -63,7 +63,7 @@ export const config = {
   intro: {
     fromX: 2100, // 출발 x (화면 오른쪽 바깥, 캐릭터 중심)
     groomX: 360, // 멈추는 x (화면 왼쪽)
-    feetY: 700, // 이 구간에서 신랑 발 높이
+    feetY: 780, // 이 구간(0~27초)에서만 신랑 발 높이 — 머리 위 말풍선과 균형이 맞게 아래로 (맵 바닥선 700 과 별개)
     waveLine: 1, // 이 멘트가 끝날 때까지 손 흔들기
   },
 
@@ -86,7 +86,7 @@ export const config = {
     parallax: { clouds: 0.25, hills: 0.5 }, // 배경이 땅보다 얼마나 천천히 흐르는지
     jump: { air: 0.85, height: 240 }, // 보통 점프: 체공(초) / 높이(px)
     pitJump: { air: 1.05, height: 250 }, // 낭떠러지 건너뛰기
-    boxY: 240, // 물음표상자 위쪽 y (바닥선을 올린 만큼 같이 올림)
+    boxY: 200, // 물음표상자 위쪽 y (바닥선을 올린 만큼 같이 올림)
     boxSize: 72, // 상자 한 칸 크기(px)
 
     // ── 물음표상자 8개 = 1년 ~ 8년 ──────────────────────────────
@@ -149,11 +149,11 @@ export const config = {
       { x: 1500, h: 2 },
       { x: 7000, h: 3 },
     ],
-    // 장식 벽돌 — 물음표상자(y 240)보다 위에 둬서 점프하는 신랑과 겹치지 않게
+    // 장식 벽돌 — 물음표상자(y 200)보다 위에 둬서 점프하는 신랑과 겹치지 않게
     blockRows: [
-      { x: 2850, y: 156, pattern: 'BB' },
-      { x: 5600, y: 156, pattern: 'BBB' },
-      { x: 8450, y: 156, pattern: 'BB' },
+      { x: 2850, y: 116, pattern: 'BB' },
+      { x: 5600, y: 116, pattern: 'BBB' },
+      { x: 8450, y: 116, pattern: 'BB' },
     ],
     decorSeed: 7, // 구름/언덕/덤불 배치용 난수 씨앗
   },
@@ -204,7 +204,7 @@ export const config = {
     src: './assets/images/grandPiano.png',
     x: 246, // 그림 왼쪽 끝 (맵 좌표)
     w: 700, // 그림 폭 (비율 유지 → 높이 자동)
-    bottomY: 772, // 그림 아래쪽이 놓이는 y (바닥선 + 32)
+    bottomY: 732, // 그림 아래쪽이 놓이는 y (바닥선 + 32)
   },
 
   // ── 연도별 사진 (물음표상자를 치면 그 자리에서 동그랗게 떠올랐다가 "팡") ──
@@ -212,16 +212,20 @@ export const config = {
   //  권장: public/assets/photos/year1.jpg ~ year8.jpg, 긴 변 1200px 이하 jpg
   photos: {
     dir: './assets/photos/',
-    size: 320, // 동그라미 지름(px) — 2026-11-04: 280 → 320 (조금 더 크게)
-    riseY: -60, // 상자 중심에서 위로 얼마나 떠오르는지(px). 음수 = 아래쪽. HUD 하트와 신랑 머리 사이에 들어가도록 맞춘 값
-    drift: 130, // 떠 있는 동안 왼쪽으로 흘러가는 속도(px/초) — 맵보다 느려서 오래 보임
+    size: 500, // 동그라미 지름(px) — 2026-11-04: 280 → 500
+    //  상자 바로 위가 아니라 "오른쪽 위"로 띄웁니다. 그래야 크게 키워도 HUD 하트·신랑을 안 가립니다.
+    offsetX: 320, // 상자에서 오른쪽으로 띄우는 거리(px)
+    riseY: -124, // 상자 중심에서 위로 얼마나 떠오르는지(px). 음수 = 아래쪽 (동그라미 중심이 y 360 에 오도록) // 상자 중심에서 위로 얼마나 떠오르는지(px). 음수 = 아래쪽. 신랑 머리 위에 딱 들어가도록 맞춘 값
+    drift: 35, // 떠 있는 동안 왼쪽으로 흘러가는 속도(px/초) — 맵보다 훨씬 느려서 오래 보임
+    bob: null, // 둥둥 흔들기: { amount: 14, period: 1.2 } 처럼 적으면 떠 있는 동안 위아래로 살짝 움직임
     //  동그라미 안에서 사진의 어느 부분을 보여줄지. 사진마다 list 에서 따로 적을 수 있습니다(아래).
     //  가로 % = 왼쪽(0%) ~ 오른쪽(100%) / 세로 % = 위(0%) ~ 아래(100%). 얼굴이 잘리면 이 값만 조절하세요.
     objectPosition: 'center center', // 따로 안 적은 사진의 기본값
     delay: 0.05, // 상자를 친 뒤 몇 초 있다가 나오는지
     popIn: 0.26,
-    hold: 1.8, // 떠 있는 시간 (상자 간격보다 짧아야 함 — check 가 검사)
-    burst: 0.3, // "팡" 터지는 시간
+    hold: 1.35, // 떠 있는 시간 (상자 간격보다 짧아야 함 — check 가 검사)
+    burst: 0.3, // "톡" 터지는 시간
+    burstScale: 1.3, // 터질 때 커지는 배율 (동그라미가 커져서 너무 크게 번지지 않게)
     //  objectPosition 은 "얼굴이 동그라미 가운데에 오도록" 사진마다 맞춰 둔 값입니다
     list: [
       { year: 1, src: 'year1.jpg', objectPosition: 'center 70%' }, // 세로 · 얼굴이 아래쪽
@@ -245,8 +249,8 @@ export const config = {
       start: 0,
       right: 56,
       y: 44,
-      labelSize: 30,
-      valueSize: 46,
+      labelSize: 36,
+      valueSize: 56,
       finalText: '8 YEAR 6 MONTH', // 깃발을 친 뒤 마무리 표시
     },
   },
@@ -258,12 +262,12 @@ export const config = {
     hold: 2.6, // 글자가 다 나온 뒤 머무는 시간(초)
     popIn: 0.15,
     popOut: 0.15,
-    fontSize: 76, // 인사 말풍선 글자 크기 (뒷자리 하객도 읽도록 크게)
+    fontSize: 80, // 인사 말풍선 글자 크기 (뒷자리 하객도 읽도록 크게)
     layout: 'above',
     side: { maxWidth: 1420, gap: 40, centerY: 0.32 },
-    above: { maxWidth: 1400, gap: 34, tailX: 150 },
+    above: { maxWidth: 1600, gap: 34, tailX: 150 }, // 글자를 키운 만큼 폭도 넓힘 (화면 안에 들어오는 최대)
     // 게임 구간 전용: 고정 자막칸 (바닥선 바로 아래, 화면 끝에서 110px 띄움 — 예식장 프로젝터에서 잘리지 않게)
-    game: { x: 80, y: 752, maxWidth: 1760, fontSize: 60 }, // 2026-11-04: 846 → 752 (아래 여백 10% 확보)
+    game: { x: 80, y: 714, maxWidth: 1760, fontSize: 68 }, // 2026-11-04: 글자 60 → 68, 위치 846 → 714 (아래 여백 10% 확보)
   },
 
   // ── 소리: 말풍선 말소리 + 효과음 ────────────────────────────────
@@ -309,7 +313,7 @@ export const config = {
       intro: { src: 'intro.mp3', volume: 0.4, offset: 0, loop: false }, // 40.5초
       game: { src: 'inGame.mp3', volume: 0.34, offset: 0, loop: true }, // 125.2초
       //  ▼ 마무리 곡 — src 만 바꾸면 바로 교체됩니다 ('outro.mp3' ↔ 'outro2.mp3')
-      outro: { src: 'outro2.mp3', volume: 0.42, offset: 0, loop: false }, // 83.6~117초(33.4초) 사용
+      outro: { src: 'outro2.mp3', volume: 0.6, offset: 0, loop: false }, // 83.6~117초(33.4초) 사용
     },
     //  start/stop = 영상 시각(초). fadeOut 은 stop "이전"부터 서서히 줄어듭니다.
     cues: [
@@ -328,9 +332,9 @@ export const config = {
   //  scene: 속한 장면 이름 (check 가 구간을 벗어나는지 검사) / layout: 'side' | 'above' | 'game'
   dialogue: [
     // 인사 (검정 배경, 오른쪽 큰 말풍선)
-    { id: 1, scene: 'greet', layout: 'side', at: 5.9, hold: 2.6, text: '안녕하세요. 신랑 {groom}입니다.' },
-    { id: 2, scene: 'greet', layout: 'side', at: 10.9, hold: 2.9, text: '날씨도 춥고, 다들 바쁘신 와중에도 저희를 위해 소중한 시간을 내주셔서 감사합니다.' },
-    { id: 3, scene: 'greet', layout: 'side', at: 18.9, hold: 3.0, text: '예식 시작 전 간략하게 저희가 어떻게 오늘 이 자리까지 오게 되었는지 말씀 드리겠습니다.' },
+    { id: 1, scene: 'greet', layout: 'above', at: 5.9, hold: 2.6, text: '안녕하세요. 신랑 {groom}입니다.' },
+    { id: 2, scene: 'greet', layout: 'above', at: 10.9, hold: 2.9, text: '날씨도 춥고, 다들 바쁘신 와중에도 저희를 위해 소중한 시간을 내주셔서 감사합니다.' },
+    { id: 3, scene: 'greet', layout: 'above', at: 18.9, hold: 3.0, text: '예식 시작 전 간략하게 저희가 어떻게 오늘 이 자리까지 오게 되었는지 말씀 드리겠습니다.' },
     // 피아노 앞 (머리 위 말풍선)
     { id: 4, scene: 'piano', layout: 'above', at: 29.4, cps: 12, hold: 2.4, text: '첫 직장에 취직하고, 퇴근 후 취미로 피아노 학원에 등록했어요.' },
     { id: 5, scene: 'piano', layout: 'above', at: 35.6, cps: 12, hold: 2.4, text: '그런데 거기서... 아주 예쁜 선생님을 만났습니다.' },
@@ -338,12 +342,15 @@ export const config = {
     //  어른들도 읽을 수 있게 아주 천천히(cps 10.5) + 다 나온 뒤 2.5초 넘게 유지
     { id: 6, scene: 'game', layout: 'game', at: 42.4, cps: 16, hold: 3.8, text: '저는 피아노에만 집중하려고 했어요. 진짜예요. (진짜임)' },
     { id: 7, scene: 'game', layout: 'game', at: 48.8, cps: 16, hold: 3.9, text: '근데 쳐야 할 피아노는 안 치고... 선생님께 작업만 쳤습니다.' },
-    { id: 8, scene: 'game', layout: 'game', at: 55.6, cps: 16, hold: 4.8, text: '그리고 결국 선생님이 저에게 넘어왔습니다. 아니, 제가 넘어간...? 예... 뭐, 그렇습니다.' },
+    { id: 8, scene: 'game', layout: 'game', at: 55.6, cps: 16, hold: 4.8, text: '그리고 결국 선생님이 저에게 넘어왔습니다. 아니, 제가 넘어간...? 예..뭐, 그렇습니다.' },
     { id: 9, scene: 'game', layout: 'game', at: 64.4, cps: 16, hold: 4.2, text: '아무튼 8년 6개월의 연애를 마치고, 이제 다음 챕터로 넘어가 보려 합니다.' },
     { id: 10, scene: 'game', layout: 'game', at: 72.0, cps: 16, hold: 4.4, text: '앞으로의 길도 함께 잘 걸어갈 수 있다는 걸, 오늘 증명해 보이겠습니다.' },
   ],
 
   // ── 큰 글자 배너 ────────────────────────────────────────────
+  //  배너(STAGE 1/2 START)가 뜨는 세로 중심. 540 = 화면 한가운데, 작게 할수록 위로 올라갑니다
+  //  (가운데에 두면 1~3초 동안 신랑/신부 위를 덮습니다. 캐릭터를 가리기 싫으면 340 쯤으로)
+  bannerCenterY: 540,
   banners: [
     // 게임 시작 (1 YEAR 상자를 치기 직전에 사라짐)
     { id: 'stage1', text: 'STAGE 1 START', sub: '우리가 만난 이야기', at: 41.0, hold: 1.2 },
@@ -381,7 +388,7 @@ export const config = {
     maxWidth: 1800,
     fadeIn: 1.0, // 한 줄이 떠오르는 시간
     fadeOut: 1.0, // 사라지는 시간
-    size: 64, // 마무리 글자 크기 (뒷자리에서도 읽도록 크게)
+    size: 76, // 마무리 글자 크기 (뒷자리에서도 읽도록 크게)
     color: '#ffffff',
     textCenterY: 400, // 글자가 모이는 세로 중심 (아래쪽은 두 사람 자리로 비워 둠)
 

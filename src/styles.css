@@ -71,7 +71,7 @@ body {
 .room { z-index: 4; }
 .character.groom { z-index: 5; }
 .heartsLayer { z-index: 6; visibility: visible; opacity: 1; }
-.hud { z-index: 6; }
+.hud { z-index: 7; } /* 사진 동그라미(6)보다 위 — 큰 사진이 지나가도 하트/TIME 이 보이게 */
 .photoLayer { z-index: 6; visibility: visible; opacity: 1; }
 .gameBubbleLayer { z-index: 7; visibility: visible; opacity: 1; inset: auto; width: max-content; }
 .banner { z-index: 8; }
@@ -415,10 +415,10 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 14px;
+  bottom: 34px; /* 동그라미 곡선에 글자가 잘리지 않게 안쪽으로 */
   text-align: center;
   font-family: 'Press Start 2P', monospace;
-  font-size: 20px;
+  font-size: 22px;
   color: #fff;
   text-shadow: 3px 3px 0 #1a1a2e;
 }
@@ -464,9 +464,10 @@ body {
   text-shadow: 0 8px 0 #1a1a2e;
   letter-spacing: 4px;
 }
-.banner { top: 130px; bottom: auto; height: auto; }
+/* 배너(STAGE 1/2 START)는 화면 한가운데 */
+.banner { display: grid; align-content: center; justify-items: center; }
 .bannerMain { font-size: 128px; color: #ffd84d; }
-.bannerSub { margin-top: 10px; text-align: center; font-size: 52px; color: #fff; -webkit-text-stroke: 8px #1a1a2e; paint-order: stroke fill; text-shadow: 0 6px 0 #1a1a2e; }
+.bannerSub { margin-top: 22px; text-align: center; font-size: 76px; color: #fff; -webkit-text-stroke: 8px #1a1a2e; paint-order: stroke fill; text-shadow: 0 6px 0 #1a1a2e; }
 
 /* 마무리 장면: 배경 없이(순수 검정) 두 사람 도트와 하트만 */
 .clChar { position: absolute; }

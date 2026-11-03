@@ -151,12 +151,13 @@ export function turtleInfo(config) {
   };
 }
 
-/** 사진 1장(동그라미)의 타이밍: 상자를 친 자리에서 떠올랐다가 "팡" */
+/** 사진 1장(동그라미)의 타이밍: 상자를 친 자리에서 떠올라 hold 만큼 떠 있다가 "팡" */
 export function photoTiming(config, apexAt) {
   const P = config.photos;
   const start = apexAt + P.delay;
-  const burstAt = start + P.popIn + P.hold;
-  return { start, popEnd: start + P.popIn, burstAt, end: burstAt + P.burst };
+  const popEnd = start + P.popIn;
+  const burstAt = popEnd + P.hold;
+  return { start, popEnd, burstAt, end: burstAt + P.burst, floatDur: P.hold };
 }
 
 export function allObstacles(config) {

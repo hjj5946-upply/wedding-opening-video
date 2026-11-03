@@ -84,18 +84,26 @@ function addBox(ctx, box, index) {
   const P = config.photos;
   const pt = photoTiming(config, t0);
   const yTop = cyBox - P.riseY;
-  const xEnd = cx - P.drift * P.hold;
+  const xMid = cx + (P.offsetX ?? 0); // 상자에서 오른쪽 위로 떠오름 (HUD 하트/신랑을 안 가리게)
+  const xEnd = xMid - P.drift * pt.floatDur; // 떠 있는 시간만큼 왼쪽으로
   const frame = refs.photos[index];
   if (frame) {
     tl.set(frame, { xPercent: -50, yPercent: -50, x: cx, y: cyBox, scale: 0.2, autoAlpha: 0 }, 0);
     tl.fromTo(
       frame,
       { x: cx, y: cyBox, scale: 0.2, autoAlpha: 0 },
-      { y: yTop, scale: 1, autoAlpha: 1, duration: P.popIn, ease: 'back.out(1.6)', immediateRender: false },
+      { x: xMid, y: yTop, scale: 1, autoAlpha: 1, duration: P.popIn, ease: 'back.out(1.6)', immediateRender: false },
       pt.start,
     );
-    tl.to(frame, { x: xEnd, duration: P.hold, ease: 'none' }, pt.popEnd); // 떠 있는 동안 천천히 흘러감
-    tl.to(frame, { scale: 1.55, autoAlpha: 0, duration: P.burst, ease: 'power2.out' }, pt.burstAt); // 팡!
+    tl.to(frame, { x: xEnd, duration: pt.floatDur, ease: 'none' }, pt.popEnd); // 떠 있는 동안 천천히 흘러감
+    //  둥둥: 떠 있는 동안 위아래로 살짝 (x 와 따로 움직이므로 서로 간섭 없음)
+    const B = P.bob;
+    if (B && pt.floatDur > B.period) {
+      const half = B.period / 2;
+      const reps = Math.max(1, Math.round(pt.floatDur / half) - 1);
+      tl.to(frame, { y: yTop - B.amount, duration: half, ease: 'sine.inOut', repeat: reps, yoyo: true }, pt.popEnd);
+    }
+    tl.to(frame, { scale: P.burstScale ?? 1.4, autoAlpha: 0, duration: P.burst, ease: 'power2.out' }, pt.burstAt); // 톡!
   }
   const ring = refs.photoRings[index];
   if (ring) {
@@ -103,7 +111,7 @@ function addBox(ctx, box, index) {
     tl.fromTo(
       ring,
       { scale: 0.55, autoAlpha: 0.95 },
-      { scale: 2.1, autoAlpha: 0, duration: P.burst * 1.3, ease: 'power2.out', immediateRender: false },
+      { scale: (P.burstScale ?? 1.4) * 1.3, autoAlpha: 0, duration: P.burst * 1.3, ease: 'power2.out', immediateRender: false },
       pt.burstAt,
     );
   }
