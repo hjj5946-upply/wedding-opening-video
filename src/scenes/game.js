@@ -82,6 +82,7 @@ function addBox(ctx, box, index) {
 
   // 3) 그 자리에서 동그란 사진이 떠오름 → 천천히 왼쪽으로 흘러감 → "팡" 터짐
   const P = config.photos;
+  const Z = P.zoom; // 다가오며 터지는 방식 설정 (null 이면 기존 "톡")
   const pt = photoTiming(config, t0);
   const yTop = cyBox - P.riseY;
   const xMid = cx + (P.offsetX ?? 0); // 상자에서 오른쪽 위로 떠오름 (HUD 하트/신랑을 안 가리게)
@@ -103,19 +104,48 @@ function addBox(ctx, box, index) {
       const reps = Math.max(1, Math.round(pt.floatDur / half) - 1);
       tl.to(frame, { y: yTop - B.amount, duration: half, ease: 'sine.inOut', repeat: reps, yoyo: true }, pt.popEnd);
     }
-    tl.to(frame, { scale: P.burstScale ?? 1.4, autoAlpha: 0, duration: P.burst, ease: 'power2.out' }, pt.burstAt); // 톡!
+    // ── [기존 방식] 제자리에서 살짝 커지며 "톡" (되돌리려면 config.photos.zoom: null) ──
+    // tl.to(frame, { scale: P.burstScale ?? 1.4, autoAlpha: 0, duration: P.burst, ease: 'power2.out' }, pt.burstAt); // 톡!
+    if (!Z) tl.to(frame, { scale: P.burstScale ?? 1.4, autoAlpha: 0, duration: P.burst, ease: 'power2.out' }, pt.burstAt);
   }
+  // ── [다가오는 방식] 화면 쪽(가운데)으로 다가오며 점점 커지고 투명해짐 → popAt 에 "팡" ──
+  const W = config.canvas.width;
+  const H = config.canvas.height;
+  const xZoom = Z ? xEnd + (W / 2 - xEnd) * (Z.toCenter ?? 0) : xEnd;
+  const yZoom = Z ? yTop + (H / 2 - yTop) * (Z.toCenter ?? 0) : yTop;
+  if (frame && Z) {
+    //  커지는 건 갈수록 빠르게(다가오는 느낌)
+    tl.to(frame, { x: xZoom, y: yZoom, scale: Z.scale, duration: Z.duration, ease: 'power2.in' }, pt.burstAt);
+    //  투명해지기: 뒤쪽 fadePart 구간에서만, 처음엔 천천히 → 끝에서 빠르게 (2026-11-04: 60%·power1 → 45%·power2, 더 늦게 흐려짐)
+    const fadePart = Z.fadePart ?? 0.45;
+    tl.to(frame, { autoAlpha: 0, duration: Z.duration * fadePart, ease: 'power2.in' }, pt.burstAt + Z.duration * (1 - fadePart));
+  }
+  // ── [기존 방식] 고리 — 흘러간 끝 자리에서 퍼짐 ──
+  // const ring = refs.photoRings[index];
+  // if (ring) {
+  //   tl.set(ring, { xPercent: -50, yPercent: -50, x: xEnd, y: yTop, scale: 0.55, autoAlpha: 0 }, 0);
+  //   tl.fromTo(
+  //     ring,
+  //     { scale: 0.55, autoAlpha: 0.95 },
+  //     { scale: (P.burstScale ?? 1.4) * 1.3, autoAlpha: 0, duration: P.burst * 1.3, ease: 'power2.out', immediateRender: false },
+  //     pt.burstAt,
+  //   );
+  // }
+  // sfxAt(ctx, pt.burstAt, 'burst');
   const ring = refs.photoRings[index];
   if (ring) {
-    tl.set(ring, { xPercent: -50, yPercent: -50, x: xEnd, y: yTop, scale: 0.55, autoAlpha: 0 }, 0);
+    //  다가오는 방식이면 고리도 커진 사진 크기에서 시작해 더 크게 퍼짐
+    const r0 = Z ? (Z.ringFrom ?? Z.scale * 0.7) : 0.55;
+    const r1 = Z ? r0 * (Z.ringGrow ?? 1.5) : (P.burstScale ?? 1.4) * 1.3;
+    tl.set(ring, { xPercent: -50, yPercent: -50, x: xZoom, y: yZoom, scale: r0, autoAlpha: 0 }, 0);
     tl.fromTo(
       ring,
-      { scale: 0.55, autoAlpha: 0.95 },
-      { scale: (P.burstScale ?? 1.4) * 1.3, autoAlpha: 0, duration: P.burst * 1.3, ease: 'power2.out', immediateRender: false },
-      pt.burstAt,
+      { scale: r0, autoAlpha: 0.95 },
+      { scale: r1, autoAlpha: 0, duration: P.burst * 1.3, ease: 'power2.out', immediateRender: false },
+      pt.popAt,
     );
   }
-  sfxAt(ctx, pt.burstAt, 'burst');
+  sfxAt(ctx, pt.popAt, 'burst');
 }
 
 /** 충돌 1번: 피격 포즈 + 뒤로 밀렸다 복귀 + 깜빡임 + 장애물이 앞으로 넘어지며 사라짐 */

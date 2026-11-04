@@ -157,7 +157,13 @@ export function photoTiming(config, apexAt) {
   const start = apexAt + P.delay;
   const popEnd = start + P.popIn;
   const burstAt = popEnd + P.hold;
-  return { start, popEnd, burstAt, end: burstAt + P.burst, floatDur: P.hold };
+  //  [기존 방식] 제자리에서 살짝 커지며 "톡" — 되돌리려면 config.photos.zoom 을 null 로
+  // return { start, popEnd, burstAt, end: burstAt + P.burst, floatDur: P.hold };
+  //  [다가오는 방식] hold 가 끝나면(burstAt) 화면 쪽으로 다가오며 커지고 투명해지다가 popAt 에 "팡"
+  const Z = P.zoom;
+  if (!Z) return { start, popEnd, burstAt, end: burstAt + P.burst, floatDur: P.hold, popAt: burstAt };
+  const popAt = burstAt + Z.duration * (Z.popAt ?? 0.75);
+  return { start, popEnd, burstAt, end: Math.max(burstAt + Z.duration, popAt + P.burst), floatDur: P.hold, popAt };
 }
 
 export function allObstacles(config) {
